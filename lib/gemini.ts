@@ -22,7 +22,10 @@ import {
   computeIntegrityReport,
 } from '@/lib/fallback-data';
 
-const apiKey = process.env.GEMINI_API_KEY || '';
+const apiKeys = (process.env.GEMINI_API_KEY || '')
+  .split(',')
+  .map((k) => k.trim())
+  .filter((k) => k && k !== 'demo_key');
 
 // Primary & secondary model candidates for resilience
 const PREFERRED_MODELS = [
@@ -31,10 +34,7 @@ const PREFERRED_MODELS = [
   'gemini-1.5-pro',
 ];
 
-let genAI: GoogleGenerativeAI | null = null;
-if (apiKey && apiKey !== 'demo_key') {
-  genAI = new GoogleGenerativeAI(apiKey);
-}
+const genAIClients: GoogleGenerativeAI[] = apiKeys.map((k) => new GoogleGenerativeAI(k));
 
 function cleanJsonString(raw: string): string {
   let cleaned = raw.trim();
@@ -53,7 +53,7 @@ async function callGeminiJson<T>(
   userPrompt: string,
   temperature = 0.4
 ): Promise<T | null> {
-  if (!genAI) {
+  if (genAIClients.length === 0) {
     return null;
   }
 
@@ -62,21 +62,23 @@ async function callGeminiJson<T>(
     responseMimeType: 'application/json',
   };
 
-  for (const modelName of PREFERRED_MODELS) {
-    try {
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-        systemInstruction,
-        generationConfig,
-      });
+  for (const client of genAIClients) {
+    for (const modelName of PREFERRED_MODELS) {
+      try {
+        const model = client.getGenerativeModel({
+          model: modelName,
+          systemInstruction,
+          generationConfig,
+        });
 
-      const response = await model.generateContent(userPrompt);
-      const text = response.response.text();
-      const cleaned = cleanJsonString(text);
-      const parsed = JSON.parse(cleaned) as T;
-      return parsed;
-    } catch (err: unknown) {
-      console.warn(`[ViewPilot Gemini] Model ${modelName} warning:`, (err as Error)?.message || err);
+        const response = await model.generateContent(userPrompt);
+        const text = response.response.text();
+        const cleaned = cleanJsonString(text);
+        const parsed = JSON.parse(cleaned) as T;
+        return parsed;
+      } catch (err: unknown) {
+        console.warn(`[ViewPilot Gemini] Model ${modelName} warning:`, (err as Error)?.message || err);
+      }
     }
   }
 

@@ -14,8 +14,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 });
     }
 
-    const apiKey = process.env.ELEVENLABS_API_KEY;
-    if (!apiKey) {
+    const apiKeys = (process.env.ELEVENLABS_API_KEY || '')
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean);
+
+    if (apiKeys.length === 0) {
       return NextResponse.json(
         { error: 'ElevenLabs not configured on server', fallback: 'browser' },
         { status: 503 }
@@ -36,34 +40,48 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
-      {
-        method: 'POST',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-          Accept: 'audio/mpeg',
-        },
-        body: JSON.stringify({
-          text,
-          model_id: modelId,
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-          },
-        }),
-      }
-    );
+    let audioBuffer: ArrayBuffer | null = null;
+    let contentType = 'audio/mpeg';
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.warn('[ElevenLabs TTS] Upstream error, falling back to browser speech:', errText);
-      return NextResponse.json({ error: 'TTS upstream error', fallback: 'browser' }, { status: 502 });
+    for (const apiKey of apiKeys) {
+      try {
+        const response = await fetch(
+          `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
+          {
+            method: 'POST',
+            headers: {
+              'xi-api-key': apiKey,
+              'Content-Type': 'application/json',
+              Accept: 'audio/mpeg',
+            },
+            body: JSON.stringify({
+              text,
+              model_id: modelId,
+              voice_settings: {
+                stability: 0.5,
+                similarity_boost: 0.75,
+              },
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.warn('[ElevenLabs TTS] Key failed, trying next key:', errText.slice(0, 100));
+          continue;
+        }
+
+        audioBuffer = await response.arrayBuffer();
+        contentType = response.headers.get('content-type') || 'audio/mpeg';
+        break;
+      } catch (err) {
+        console.warn('[ElevenLabs TTS] Error calling ElevenLabs, trying next key:', (err as Error)?.message);
+      }
     }
 
-    const audioBuffer = await response.arrayBuffer();
-    const contentType = response.headers.get('content-type') || 'audio/mpeg';
+    if (!audioBuffer) {
+      return NextResponse.json({ error: 'TTS upstream error on all keys', fallback: 'browser' }, { status: 502 });
+    }
 
     if (cache.size >= MAX_CACHE) {
       const oldest = cache.keys().next().value;
