@@ -1,19 +1,20 @@
-# dependencies
+# Dependencies
 node_modules/
-*/node_modules/
+**/node_modules/
 
-# next.js
+# Next.js build output
 .next/
-*/.next/
+**/.next/
 out/
+**/out/
 build/
+**/build/
 
-# nested clone / previous repo
-CodeFest/
+# Environment variables (NEVER COMMIT SECRETS)
+.env*
+**/.env*
 
-# environment variables
-.env*.local
-
-# misc
+# Misc
 .DS_Store
 *.tsbuildinfo
+**/*.tsbuildinfo
