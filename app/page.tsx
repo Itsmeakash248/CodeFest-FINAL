@@ -321,6 +321,113 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* 5 Specialist AI Agents Showcase */}
+      <div className="max-w-5xl w-full mt-20 sm:mt-28 space-y-10">
+        <div className="text-center space-y-3">
+          <span className="text-xs font-bold uppercase tracking-widest text-[var(--primary)]">
+            Multi-Agent Team
+          </span>
+          <h2 className="font-serif-hero text-3xl sm:text-4xl font-bold text-[var(--text-primary)]">
+            Five specialist coaches. One unified workspace.
+          </h2>
+          <p className="text-sm sm:text-base text-[var(--text-secondary)] max-w-xl mx-auto">
+            Switch between targeted coaches who specialize in real interview dynamics, resume rewrites, skill diagnostics, and career navigation.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <Card variant="elevated" className="p-6 space-y-4 hover:border-[var(--primary)]/60 transition-all flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/15 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold text-sm">
+                IC
+              </div>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Interview Coach</h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Conducts realistic, role-specific mock interviews and probes deep into vague answers with the 4-part STAR method.
+              </p>
+            </div>
+            <Link href="/dashboard?agent=interview-coach">
+              <Button variant="tonal" size="sm" className="w-full text-xs">Chat with Coach →</Button>
+            </Link>
+          </Card>
+
+          <Card variant="elevated" className="p-6 space-y-4 hover:border-[var(--secondary)]/60 transition-all flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold text-sm">
+                RR
+              </div>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Resume Reviewer</h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Pinpoints weak bullets, formats missing metrics into Action-Result impacts, and checks ATS keywords.
+              </p>
+            </div>
+            <Link href="/dashboard?agent=resume-reviewer">
+              <Button variant="tonal" size="sm" className="w-full text-xs">Review Resume →</Button>
+            </Link>
+          </Card>
+
+          <Card variant="elevated" className="p-6 space-y-4 hover:border-emerald-500/60 transition-all flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
+                SA
+              </div>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Skill Analyzer</h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Maps target role requirements against candidate capabilities and generates customized technical drills.
+              </p>
+            </div>
+            <Link href="/dashboard?agent=skill-analyzer">
+              <Button variant="tonal" size="sm" className="w-full text-xs">Analyze Skills →</Button>
+            </Link>
+          </Card>
+
+          <Card variant="elevated" className="p-6 space-y-4 hover:border-amber-500/60 transition-all flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm">
+                CA
+              </div>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Career Advisor</h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Synthesizes interview feedback into 14-day high-impact action plans and compensation positioning advice.
+              </p>
+            </div>
+            <Link href="/dashboard?agent=career-advisor">
+              <Button variant="tonal" size="sm" className="w-full text-xs">Explore Strategy →</Button>
+            </Link>
+          </Card>
+
+          <Card variant="elevated" className="p-6 space-y-4 hover:border-rose-500/60 transition-all flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm">
+                CT
+              </div>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Communication Trainer</h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Refines verbal delivery, eliminates filler words, and sharpens executive presence under pressure.
+              </p>
+            </div>
+            <Link href="/dashboard?agent=communication-trainer">
+              <Button variant="tonal" size="sm" className="w-full text-xs">Train Communication →</Button>
+            </Link>
+          </Card>
+
+          <Card variant="filled" className="p-6 space-y-4 bg-gradient-to-br from-[var(--surface-container)] to-[var(--surface-container-high)] border border-[var(--primary)]/40 flex flex-col justify-between">
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] block">
+                Visual Pipelines
+              </span>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Workflow Builder</h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Chain multi-agent actions into automated prep pipelines: resume ingest → question generation → live mock → report.
+              </p>
+            </div>
+            <Link href="/dashboard?mode=workflow">
+              <Button variant="primary" size="sm" className="w-full text-xs">Open Workflow Builder →</Button>
+            </Link>
+          </Card>
+        </div>
+      </div>
+
       {/* Bottom CTA Banner */}
       <div className="max-w-5xl w-full mt-20 mb-8">
         <Card

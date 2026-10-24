@@ -39,20 +39,53 @@ export function Navbar() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <nav className="hidden md:flex items-center gap-1 sm:gap-2">
+          <Link
+            href="/setup"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
+          >
+            <span>Practice</span>
+          </Link>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
+          >
+            <span>Agents</span>
+          </Link>
+          <Link
+            href="/dashboard?mode=workflow"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
+          >
+            <span>Workflows</span>
+          </Link>
           <Link
             href="/progress"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full text-[var(--text-primary)] bg-[var(--surface-container)] hover:bg-[var(--surface-container-high)] border border-[var(--outline)]/30 transition-all"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
           >
             <TrendingUp className="w-3.5 h-3.5 text-[var(--primary)]" />
             <span>Progress</span>
           </Link>
           <Link
+            href="/settings"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
+          >
+            <span>Settings</span>
+          </Link>
+        </nav>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/login"
+            className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
+          >
+            <span>Account</span>
+          </Link>
+          <Link
             href="/setup"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full text-[var(--on-primary)] bg-[var(--primary)] hover:opacity-90 shadow-expressive-sm transition-all"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full text-[var(--on-primary)] bg-[var(--primary)] hover:opacity-90 shadow-expressive-sm transition-all"
           >
             <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span>Practice Session</span>
+            <span>Start Practice</span>
           </Link>
           <ThemeToggle />
         </div>

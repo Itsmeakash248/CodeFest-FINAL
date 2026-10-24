@@ -5,9 +5,10 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'tonal';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'tonal' | 'soft' | 'danger' | 'plain';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
+  loading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
@@ -17,12 +18,14 @@ export function Button({
   variant = 'primary',
   size = 'md',
   isLoading = false,
+  loading = false,
   leftIcon,
   rightIcon,
   className,
   disabled,
   ...props
 }: ButtonProps) {
+  const isSpinning = isLoading || loading;
   const baseStyles =
     'inline-flex items-center justify-center font-medium transition-all duration-200 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100 rounded-full';
 
@@ -32,7 +35,7 @@ export function Button({
     lg: 'text-base px-8 py-3.5 min-h-[50px] gap-2.5 font-semibold',
   };
 
-  const variantStyles = {
+  const variantStyles: Record<string, string> = {
     primary:
       'bg-[var(--primary)] text-[var(--on-primary)] hover:brightness-105 active:brightness-95 shadow-sm focus-visible:ring-[var(--primary)]',
     secondary:
@@ -43,15 +46,21 @@ export function Button({
       'border border-[var(--outline)] bg-transparent text-[var(--text-primary)] hover:bg-[var(--surface-container)] focus-visible:ring-[var(--primary)]',
     ghost:
       'bg-transparent text-[var(--text-primary)] hover:bg-[var(--surface-container)] focus-visible:ring-[var(--primary)]',
+    soft:
+      'bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 focus-visible:ring-[var(--primary)]',
+    danger:
+      'border border-red-500/30 bg-red-500/12 text-red-500 hover:bg-red-500/20 focus-visible:ring-red-500',
+    plain:
+      'border-transparent bg-transparent text-[var(--text-secondary,#888)] hover:bg-[var(--surface-container)] hover:text-[var(--text-primary)]',
   };
 
   return (
     <button
-      className={twMerge(clsx(baseStyles, sizeStyles[size], variantStyles[variant], className))}
-      disabled={disabled || isLoading}
+      className={twMerge(clsx(baseStyles, sizeStyles[size], variantStyles[variant] || variantStyles.primary, className))}
+      disabled={disabled || isSpinning}
       {...props}
     >
-      {isLoading ? (
+      {isSpinning ? (
         <span className="inline-flex items-center gap-2">
           <svg
             className="animate-spin -ml-1 mr-1 h-4 w-4 text-current"
@@ -85,3 +94,5 @@ export function Button({
     </button>
   );
 }
+
+export default Button;
