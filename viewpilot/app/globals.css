@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+:root {
+  /* Claude × Material 3 Expressive Light Theme */
+  --background: #F7F3EC;
+  --surface: #FFFCF7;
+  --surface-container: #EEE8DF;
+  --surface-container-high: #E6DED3;
+  --text-primary: #292824;
+  --text-secondary: #6D675F;
+  --outline: #C9C0B5;
+  --primary: #B9573D;             /* Terracotta hero accent */
+  --on-primary: #FFFFFF;
+  --primary-container: #F4D8CC;
+  --on-primary-container: #542416;
+  --secondary: #686B4E;           /* Muted Olive */
+  --secondary-container: #E5E5CD;
+  --tertiary: #625B8A;            /* Lavender accent */
+  --tertiary-container: #E8DFFF;
+  --success: #386A4A;
+  --warning: #8A5B16;
+  --error: #B3261E;
+
+  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+.dark {
+  /* Claude × Material 3 Expressive Dark Theme */
+  --background: #191A17;
+  --surface: #20211D;
+  --surface-container: #292A25;
+  --surface-container-high: #34352F;
+  --text-primary: #F1EDE4;
+  --text-secondary: #C2BBAF;
+  --outline: #514F47;
+  --primary: #F0A18A;             /* Warm terracotta highlight */
+  --on-primary: #482316;
+  --primary-container: #713B2B;
+  --on-primary-container: #FFDAD0;
+  --secondary: #C9CAA7;
+  --secondary-container: #414332;
+  --tertiary: #C9BDF7;
+  --tertiary-container: #494365;
+  --success: #9BD0A6;
+  --warning: #F0C078;
+  --error: #F2B8B5;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-outline: var(--outline);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+
+  --radius-card: 28px;
+  --radius-input: 22px;
+  --radius-dialog: 30px;
+  --radius-pill: 9999px;
+}
+
+* {
+  border-color: var(--outline);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Custom scrollbars matching theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-container);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Editorial Serif Utility */
+.font-serif-hero {
+  font-family: var(--font-serif);
+}
+
+/* Expressive elevation styles */
+.shadow-expressive-sm {
+  box-shadow: 0 2px 8px -2px rgba(41, 40, 36, 0.06), 0 1px 3px 0 rgba(41, 40, 36, 0.04);
+}
+
+.shadow-expressive-md {
+  box-shadow: 0 8px 24px -4px rgba(41, 40, 36, 0.08), 0 2px 6px -1px rgba(41, 40, 36, 0.04);
+}
+
+.shadow-expressive-lg {
+  box-shadow: 0 16px 36px -6px rgba(41, 40, 36, 0.12), 0 4px 12px -2px rgba(41, 40, 36, 0.06);
+}
+
+.dark .shadow-expressive-sm {
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.35);
+}
+
+.dark .shadow-expressive-md {
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+}
+
+.dark .shadow-expressive-lg {
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.55);
+}
