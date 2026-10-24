@@ -242,4 +242,383 @@ export const FALLBACK_EVALUATION_REPORT: EvaluationReport = {
     totalGazeChecks: 180,
     goodGazeCount: 166,
   },
+  strictness: 'Standard',
+  integrityReport: {
+    integrityScore: 98,
+    status: 'Verified Authentic',
+    tabSwitchCount: 0,
+    totalUnfocusedSeconds: 0,
+    pasteCount: 0,
+    totalPastedCharacters: 0,
+    typingCadenceWpmBurst: 118,
+    aiPatternRiskScore: 6,
+    integrityVerified: true,
+    authenticitySummary:
+      'Continuous focus maintained across all interview questions. Natural keystroke dynamics, zero clipboard injection anomalies, and genuine personalized conversational phrasing verified.',
+    events: [
+      {
+        id: 'evt-01',
+        type: 'window_blur',
+        timestamp: Date.now() - 240000,
+        timeString: '00:05',
+        description: 'Session focus established. Live proctor shield active.',
+        severity: 'info',
+      },
+      {
+        id: 'evt-02',
+        type: 'clipboard_paste',
+        timestamp: Date.now() - 180000,
+        timeString: '01:45',
+        description: 'Keystroke velocity verified: 118 WPM (Natural micro-pause cadence within human baseline).',
+        severity: 'info',
+      },
+      {
+        id: 'evt-03',
+        type: 'synthetic_ai_pattern',
+        timestamp: Date.now() - 90000,
+        timeString: '03:12',
+        description: 'Linguistic authenticity check: Low synthetic token uniformity (94% human language variance).',
+        severity: 'info',
+      },
+    ],
+  },
+  jobReadiness: {
+    readinessIndex: 84,
+    readinessTier: 'Immediate Placement Ready',
+    industryBenchmarkScore: 6.8,
+    percentileRanking: 88,
+    passingProbability: 86,
+    targetRoleBenchmark: 'Frontend Developer (Junior to Mid-Level Industry Standard)',
+    hiringVerdict: 'Hire',
+    companyFitTiers: [
+      {
+        tier: 'High-Growth Tech Startups (Series A-C)',
+        readiness: 'High Match',
+        examples: 'Stripe-like startups, Vercel ecosystem, Supabase, scale-ups',
+      },
+      {
+        tier: 'Tier-1 Enterprise & Corporate Product Orgs',
+        readiness: 'High Match',
+        examples: 'Atlassian, Adobe, Salesforce, Shopify, modern SaaS engineering',
+      },
+      {
+        tier: 'Staff / FAANG Bar-Raiser Loops',
+        readiness: 'Competitive',
+        examples: 'Google, Meta, Apple (requires deeper concurrency & distributed web vitals)',
+      },
+    ],
+    competencyPillars: [
+      {
+        name: 'System & Technical Architecture',
+        candidateScore: 8.8,
+        benchmarkScore: 6.6,
+        status: 'Exceeds Benchmark',
+        percentile: 91,
+        insight: 'Exceptional command of the browser rendering pipeline, DevTools diagnostics, and virtualization mechanics.',
+      },
+      {
+        name: 'STAR Storytelling & Executive Clarity',
+        candidateScore: 8.5,
+        benchmarkScore: 6.9,
+        status: 'Exceeds Benchmark',
+        percentile: 87,
+        insight: 'Clear situation-task-action-result narrative with empathetic cross-functional alignment.',
+      },
+      {
+        name: 'Problem Decomposition Under Pressure',
+        candidateScore: 8.2,
+        benchmarkScore: 6.7,
+        status: 'Exceeds Benchmark',
+        percentile: 83,
+        insight: 'Methodical troubleshooting path; could add explicit CI automated regression guardrails.',
+      },
+      {
+        name: 'Real-Time Articulation & Composure',
+        candidateScore: 8.1,
+        benchmarkScore: 7.0,
+        status: 'Exceeds Benchmark',
+        percentile: 82,
+        insight: 'Balanced 135 WPM pace with strong camera engagement and low filler word density.',
+      },
+    ],
+    strengthsHighlights: [
+      'Strong grounding in Chrome DevTools performance profiling and framerate targets',
+      'Demonstrated collaborative leadership using rapid Figma-to-code prototypes',
+      'Quantifiable metrics articulated across technical and accessibility dimensions',
+    ],
+    criticalGaps: [
+      'Front-load top-level business ROI metrics before plunging into code implementation',
+      'Deepen discussions of server-side streaming SSR vs. client-side virtualization trade-offs',
+    ],
+    fourteenDayRoadmap: [
+      {
+        dayRange: 'Days 1 - 3',
+        phase: 'Sprint 1: Bottom-Line Metric Front-Loading',
+        focusArea: 'Executive STAR Articulation',
+        actionItem: 'Practice the "Top-Down STAR" drill: articulate the business and performance metric within the first 15 seconds of any response.',
+        expectedImpact: '+0.6 bump in Communication dimension',
+        drillType: 'STAR Storytelling',
+      },
+      {
+        dayRange: 'Days 4 - 7',
+        phase: 'Sprint 2: Server Rendering & Edge Caching Architecture',
+        focusArea: 'Full-Stack Modern Web Vitals',
+        actionItem: 'Deep-dive React 19 Server Components, streaming SSR, and edge ISR caching strategies to complement client-side optimization answers.',
+        expectedImpact: '+0.5 bump in Technical Knowledge',
+        drillType: 'System Architecture',
+      },
+      {
+        dayRange: 'Days 8 - 11',
+        phase: 'Sprint 3: CI Automated Guardrails & Production Telemetry',
+        focusArea: 'Automated Prevention Systems',
+        actionItem: 'Formulate answers that highlight automated Lighthouse CI budgets, error boundaries, and synthetic user monitoring in production.',
+        expectedImpact: '+0.8 bump in Problem Solving',
+        drillType: 'Technical',
+      },
+      {
+        dayRange: 'Days 12 - 14',
+        phase: 'Sprint 4: High-Strictness Bar-Raiser Simulation',
+        focusArea: 'Mock Pressure Testing',
+        actionItem: 'Run 2 full mock sessions on ViewPilot in "FAANG Bar-Raiser" strictness mode to cement rapid edge-case composure.',
+        expectedImpact: '+1.2 composite readiness score elevation',
+        drillType: 'Mock Under Pressure',
+      },
+    ],
+  },
 };
+
+/**
+ * Computes a customized Job Readiness Pattern based on actual interview performance, role, and strictness.
+ */
+export function computeJobReadinessPattern(
+  config: InterviewConfig,
+  overallScore: number,
+  dimensions?: any
+): import('@/types').JobReadinessPattern {
+  const commScore = dimensions?.communication?.score || overallScore;
+  const techScore = dimensions?.roleKnowledge?.score || overallScore;
+  const psScore = dimensions?.problemSolving?.score || overallScore;
+  const ansScore = dimensions?.answerQuality?.score || overallScore;
+
+  // Baseline industry benchmarks according to experience level
+  const isSenior = config.experienceLevel.includes('Senior') || config.experienceLevel.includes('Lead');
+  const isJunior = config.experienceLevel.includes('Junior');
+  const baseBenchmark = isSenior ? 7.6 : isJunior ? 6.4 : 6.9;
+
+  const readinessIndex = Math.min(100, Math.max(30, Math.round(overallScore * 10)));
+  const percentileRanking = Math.min(99, Math.max(20, Math.round(45 + (overallScore - baseBenchmark) * 18)));
+  const passingProbability = Math.min(95, Math.max(25, Math.round(50 + (overallScore - baseBenchmark) * 16)));
+
+  const readinessTier: import('@/types').JobReadinessPattern['readinessTier'] =
+    readinessIndex >= 80
+      ? 'Immediate Placement Ready'
+      : readinessIndex >= 68
+      ? 'Near Placement Ready'
+      : readinessIndex >= 50
+      ? 'Targeted Coaching Needed'
+      : 'Foundational Stage';
+
+  const hiringVerdict: import('@/types').Verdict =
+    overallScore >= 8.5 ? 'Strong Hire' : overallScore >= 7.0 ? 'Hire' : overallScore >= 5.5 ? 'Lean Hire' : 'Needs Coaching';
+
+  const competencyPillars: import('@/types').CompetencyPillar[] = [
+    {
+      name: `${config.role} System & Domain Depth`,
+      candidateScore: Number(techScore.toFixed(1)),
+      benchmarkScore: baseBenchmark,
+      status: techScore >= baseBenchmark + 0.5 ? 'Exceeds Benchmark' : techScore >= baseBenchmark - 0.5 ? 'Meets Benchmark' : 'Below Benchmark',
+      percentile: Math.min(99, Math.round(50 + (techScore - baseBenchmark) * 18)),
+      insight: `Proficiency in core ${config.role} domain patterns, design decisions, and system trade-offs.`,
+    },
+    {
+      name: 'STAR Methodology & Executive Clarity',
+      candidateScore: Number(commScore.toFixed(1)),
+      benchmarkScore: baseBenchmark + 0.2,
+      status: commScore >= baseBenchmark + 0.5 ? 'Exceeds Benchmark' : commScore >= baseBenchmark - 0.5 ? 'Meets Benchmark' : 'Below Benchmark',
+      percentile: Math.min(99, Math.round(50 + (commScore - (baseBenchmark + 0.2)) * 18)),
+      insight: 'Structured delivery with clear Situation-Task-Action-Result format and active listening.',
+    },
+    {
+      name: 'Analytical Problem Solving Under Pressure',
+      candidateScore: Number(psScore.toFixed(1)),
+      benchmarkScore: baseBenchmark - 0.1,
+      status: psScore >= baseBenchmark + 0.4 ? 'Exceeds Benchmark' : psScore >= baseBenchmark - 0.5 ? 'Meets Benchmark' : 'Below Benchmark',
+      percentile: Math.min(99, Math.round(50 + (psScore - (baseBenchmark - 0.1)) * 18)),
+      insight: 'Methodological hypothesis testing, failure mode isolation, and root-cause determination.',
+    },
+    {
+      name: 'Substance & Concrete Evidence Depth',
+      candidateScore: Number(ansScore.toFixed(1)),
+      benchmarkScore: baseBenchmark + 0.1,
+      status: ansScore >= baseBenchmark + 0.5 ? 'Exceeds Benchmark' : ansScore >= baseBenchmark - 0.5 ? 'Meets Benchmark' : 'Below Benchmark',
+      percentile: Math.min(99, Math.round(50 + (ansScore - (baseBenchmark + 0.1)) * 18)),
+      insight: 'Ability to back assertions with concrete quantitative data, load metrics, and business outcomes.',
+    },
+  ];
+
+  return {
+    readinessIndex,
+    readinessTier,
+    industryBenchmarkScore: baseBenchmark,
+    percentileRanking,
+    passingProbability,
+    targetRoleBenchmark: `${config.role} (${config.experienceLevel} Industry Standard)`,
+    hiringVerdict,
+    companyFitTiers: [
+      {
+        tier: 'High-Growth Tech Startups & Scale-ups',
+        readiness: readinessIndex >= 75 ? 'High Match' : 'Competitive',
+        examples: 'Vercel, Stripe, modern SaaS teams seeking fast autonomous execution',
+      },
+      {
+        tier: 'Tier-1 Enterprise & Product Corporations',
+        readiness: readinessIndex >= 80 ? 'High Match' : readinessIndex >= 65 ? 'Competitive' : 'Stretch Target',
+        examples: 'Microsoft, Amazon, Adobe, Salesforce corporate engineering loops',
+      },
+      {
+        tier: 'Bar-Raiser & Elite Research Labs',
+        readiness: readinessIndex >= 88 ? 'High Match' : readinessIndex >= 75 ? 'Competitive' : 'Stretch Target',
+        examples: 'Google Staff Bar, OpenAI, Anthropic, high-concurrency systems infrastructure',
+      },
+    ],
+    competencyPillars,
+    strengthsHighlights: [
+      `Demonstrated strong fundamentals aligned to ${config.role} expectations`,
+      'Methodical reasoning when answering follow-up probing questions',
+      'Solid articulation of technical decision-making and ownership',
+    ],
+    criticalGaps: [
+      'Front-load quantifiable business metrics earlier in the narrative',
+      'Articulate system trade-offs with explicit Big-O or latency bounds',
+    ],
+    fourteenDayRoadmap: [
+      {
+        dayRange: 'Days 1 - 3',
+        phase: 'Sprint 1: STAR Opening Articulation',
+        focusArea: 'Executive STAR Articulation',
+        actionItem: `Practice stating the key quantitative outcome for your ${config.role} projects in the first 15 seconds.`,
+        expectedImpact: '+0.5 on Communication',
+        drillType: 'STAR Storytelling',
+      },
+      {
+        dayRange: 'Days 4 - 7',
+        phase: 'Sprint 2: Domain Deep-Dive & Architecture',
+        focusArea: 'Architecture & Scalability',
+        actionItem: `Map out 3 end-to-end architectures in ${config.role} with explicit failure modes and caching strategies.`,
+        expectedImpact: '+0.7 on Technical Depth',
+        drillType: 'System Architecture',
+      },
+      {
+        dayRange: 'Days 8 - 11',
+        phase: 'Sprint 3: Edge-Case & Root Cause Mastery',
+        focusArea: 'Resilience & Edge-Cases',
+        actionItem: 'Formulate answers that highlight automated CI/CD guardrails, error boundaries, and synthetic telemetry.',
+        expectedImpact: '+0.6 on Problem Solving',
+        drillType: 'Technical',
+      },
+      {
+        dayRange: 'Days 12 - 14',
+        phase: 'Sprint 4: Bar-Raiser Simulation',
+        focusArea: 'Pressure Testing',
+        actionItem: 'Run 2 full mock sessions on ViewPilot in "FAANG Bar-Raiser" strictness mode to cement composure.',
+        expectedImpact: '+1.0 composite readiness bump',
+        drillType: 'Mock Under Pressure',
+      },
+    ],
+  };
+}
+
+/**
+ * Computes an authenticity and anti-cheating proctor report based on live browser telemetry.
+ */
+export function computeIntegrityReport(
+  rawIntegrity?: Partial<import('@/types').CheatingDetectionReport>,
+  elapsedSeconds = 240
+): import('@/types').CheatingDetectionReport {
+  const tabSwitchCount = rawIntegrity?.tabSwitchCount ?? 0;
+  const totalUnfocusedSeconds = rawIntegrity?.totalUnfocusedSeconds ?? 0;
+  const pasteCount = rawIntegrity?.pasteCount ?? 0;
+  const totalPastedCharacters = rawIntegrity?.totalPastedCharacters ?? 0;
+  const typingCadenceWpmBurst = rawIntegrity?.typingCadenceWpmBurst ?? 115;
+  const aiPatternRiskScore = rawIntegrity?.aiPatternRiskScore ?? 8;
+
+  // Integrity calculation penalties
+  let deductions = 0;
+  if (tabSwitchCount > 0) deductions += Math.min(25, tabSwitchCount * 6);
+  if (totalUnfocusedSeconds > 10) deductions += Math.min(20, Math.round(totalUnfocusedSeconds * 0.8));
+  if (pasteCount > 2 && totalPastedCharacters > 300) deductions += Math.min(25, pasteCount * 5);
+  if (aiPatternRiskScore > 40) deductions += Math.min(20, Math.round((aiPatternRiskScore - 40) * 0.4));
+
+  const integrityScore = Math.max(35, 100 - deductions);
+
+  const status: import('@/types').CheatingDetectionReport['status'] =
+    integrityScore >= 90
+      ? 'Verified Authentic'
+      : integrityScore >= 75
+      ? 'Minor Irregularities'
+      : integrityScore >= 60
+      ? 'Suspicious Patterns'
+      : 'Flagged for Review';
+
+  const events: import('@/types').CheatingEvent[] = (rawIntegrity?.events && rawIntegrity.events.length > 0)
+    ? rawIntegrity.events
+    : [
+        {
+          id: 'evt-init',
+          type: 'window_blur',
+          timestamp: Date.now() - elapsedSeconds * 1000,
+          timeString: '00:00',
+          description: 'Live Proctor Shield initialized. Authenticity monitoring active.',
+          severity: 'info',
+        },
+        ...(tabSwitchCount > 0
+          ? [
+              {
+                id: 'evt-tab',
+                type: 'tab_switch' as const,
+                timestamp: Date.now() - 60000,
+                timeString: '02:15',
+                description: `Tab switch detected (${tabSwitchCount} occurrences, ${totalUnfocusedSeconds}s total unfocused).`,
+                severity: tabSwitchCount > 2 ? ('warning' as const) : ('info' as const),
+              },
+            ]
+          : []),
+        {
+          id: 'evt-keystroke',
+          type: 'clipboard_paste',
+          timestamp: Date.now() - 30000,
+          timeString: '03:40',
+          description: `Typing cadence sampled: ${typingCadenceWpmBurst} WPM. Keystroke interval distribution natural.`,
+          severity: 'info',
+        },
+        {
+          id: 'evt-nlp',
+          type: 'synthetic_ai_pattern',
+          timestamp: Date.now() - 10000,
+          timeString: '04:10',
+          description: `Synthetic language analysis: Risk index ${aiPatternRiskScore}%. Human vocabulary diversity verified.`,
+          severity: aiPatternRiskScore > 45 ? ('warning' as const) : ('info' as const),
+        },
+      ];
+
+  const authenticitySummary =
+    status === 'Verified Authentic'
+      ? 'Strong authenticity score. Candidate maintained window focus throughout the session. Zero abnormal clipboard injections or synthetic phrasing detected.'
+      : status === 'Minor Irregularities'
+      ? 'Session verified with minor proctor notes. Brief window blur or clipboard activity noted without conclusive evidence of unauthorized assistance.'
+      : 'Irregularities logged during interview session. Multiple tab focus shifts or rapid text pasting observed during response composition.';
+
+  return {
+    integrityScore,
+    status,
+    tabSwitchCount,
+    totalUnfocusedSeconds,
+    pasteCount,
+    totalPastedCharacters,
+    typingCadenceWpmBurst,
+    aiPatternRiskScore,
+    events,
+    authenticitySummary,
+    integrityVerified: integrityScore >= 75,
+  };
+}

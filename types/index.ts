@@ -34,11 +34,19 @@ export type InterviewType =
 
 export type DifficultyLevel = 'Easy' | 'Medium' | 'Hard' | string;
 
+export type StrictnessLevel =
+  | 'Lenient'
+  | 'Standard'
+  | 'Strict'
+  | 'Bar-Raiser';
+
 export interface InterviewConfig {
   role: TargetRole;
   experienceLevel: ExperienceLevel;
   interviewType: InterviewType;
   difficulty: DifficultyLevel;
+  strictness?: StrictnessLevel;
+  proctoringEnabled?: boolean;
   resumeText?: string;
   candidateName?: string;
   targetCompany?: string;
@@ -110,9 +118,75 @@ export type Verdict =
   | 'Lean Hire'
   | 'Needs Coaching';
 
+// Cheating Detection & Integrity Telemetry Models
+export interface CheatingEvent {
+  id: string;
+  type: 'tab_switch' | 'window_blur' | 'clipboard_paste' | 'synthetic_ai_pattern' | 'gaze_anomaly';
+  timestamp: number;
+  timeString: string;
+  description: string;
+  severity: 'info' | 'warning' | 'critical';
+  details?: string;
+}
+
+export interface CheatingDetectionReport {
+  integrityScore: number; // 0 - 100
+  status: 'Verified Authentic' | 'Minor Irregularities' | 'Suspicious Patterns' | 'Flagged for Review';
+  tabSwitchCount: number;
+  totalUnfocusedSeconds: number;
+  pasteCount: number;
+  totalPastedCharacters: number;
+  typingCadenceWpmBurst: number;
+  aiPatternRiskScore: number; // 0 - 100%
+  events: CheatingEvent[];
+  authenticitySummary: string;
+  integrityVerified: boolean;
+}
+
+// Job Readiness Patterns & Benchmarking Models
+export interface CompetencyPillar {
+  name: string;
+  candidateScore: number; // 1.0 - 10.0
+  benchmarkScore: number; // 1.0 - 10.0
+  status: 'Exceeds Benchmark' | 'Meets Benchmark' | 'Below Benchmark';
+  percentile: number; // e.g. 85th percentile
+  insight: string;
+}
+
+export interface ActionPlanMilestone {
+  dayRange: string;
+  phase: string;
+  focusArea: string;
+  actionItem: string;
+  expectedImpact: string;
+  drillType: 'Technical' | 'STAR Storytelling' | 'System Architecture' | 'Mock Under Pressure';
+}
+
+export interface CompanyFitTier {
+  tier: string;
+  readiness: 'High Match' | 'Competitive' | 'Stretch Target';
+  examples: string;
+}
+
+export interface JobReadinessPattern {
+  readinessIndex: number; // 0 - 100
+  readinessTier: 'Immediate Placement Ready' | 'Near Placement Ready' | 'Targeted Coaching Needed' | 'Foundational Stage';
+  industryBenchmarkScore: number; // e.g. 6.8
+  percentileRanking: number; // e.g. 82
+  passingProbability: number; // e.g. 78%
+  targetRoleBenchmark: string;
+  hiringVerdict: 'Strong Hire' | 'Hire' | 'Lean Hire' | 'Needs Coaching';
+  companyFitTiers: CompanyFitTier[];
+  competencyPillars: CompetencyPillar[];
+  strengthsHighlights: string[];
+  criticalGaps: string[];
+  fourteenDayRoadmap: ActionPlanMilestone[];
+}
+
 export interface EvaluationReport {
   id?: string;
   completedAt?: string;
+  strictness?: StrictnessLevel;
   executiveSummary: string;
   overallScore: number; // 1-10
   verdict?: Verdict;
@@ -127,6 +201,8 @@ export interface EvaluationReport {
   keyTakeaways?: string[];
   paceMetrics?: PaceMetrics;
   videoMetrics?: VideoPresenceMetrics;
+  integrityReport?: CheatingDetectionReport;
+  jobReadiness?: JobReadinessPattern;
 }
 
 export interface InterviewState {
@@ -165,6 +241,7 @@ export interface EvaluateApiRequest {
   transcript?: ChatMessage[];
   metrics?: Partial<PaceMetrics>;
   videoMetrics?: Partial<VideoPresenceMetrics>;
+  integrityData?: Partial<CheatingDetectionReport>;
 }
 
 export interface SessionHistoryItem {
@@ -175,6 +252,7 @@ export interface SessionHistoryItem {
   experienceLevel: string;
   interviewType: string;
   difficulty: string;
+  strictness?: StrictnessLevel;
   overallScore: number;
   verdict: Verdict;
   dimensions: {
@@ -185,6 +263,8 @@ export interface SessionHistoryItem {
   };
   metrics?: Partial<PaceMetrics>;
   videoMetrics?: Partial<VideoPresenceMetrics>;
+  integrityScore?: number;
+  readinessIndex?: number;
   summary: string;
   report?: EvaluationReport;
 }

@@ -17,10 +17,13 @@ import {
   CheckCircle2,
   Flame,
   Shield,
+  ShieldCheck,
   FileText,
   Upload,
   FileUp,
   Loader2,
+  Scale,
+  Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -33,7 +36,45 @@ import {
   ExperienceLevel,
   InterviewType,
   DifficultyLevel,
+  StrictnessLevel,
 } from '@/types';
+
+const STRICTNESS_MODES: {
+  id: StrictnessLevel;
+  label: string;
+  badge: string;
+  desc: string;
+  icon: string;
+}[] = [
+  {
+    id: 'Lenient',
+    label: 'Lenient (Supportive)',
+    badge: 'Guidance Curve',
+    desc: 'Encouraging mentorship, gentle hints if stuck, positive reinforcement for beginners.',
+    icon: '🟢',
+  },
+  {
+    id: 'Standard',
+    label: 'Standard (Corporate Bar)',
+    badge: 'Industry Standard',
+    desc: 'Realistic corporate hiring bar with balanced STAR probing and trade-off questions.',
+    icon: '⚖️',
+  },
+  {
+    id: 'Strict',
+    label: 'Strict (High Rigor)',
+    badge: 'Senior Bar',
+    desc: 'Deep technical scrutiny, metric demands, zero credit for hand-waving or buzzwords.',
+    icon: '🔴',
+  },
+  {
+    id: 'Bar-Raiser',
+    label: 'Bar-Raiser (Staff / FAANG)',
+    badge: 'FAANG Tier',
+    desc: 'Aggressive edge-case challenges, concurrency limits, Big-O analysis, uncompromising rubric.',
+    icon: '⚡',
+  },
+];
 
 const ROLES: { id: TargetRole; label: string; desc: string; icon: React.ReactNode }[] = [
   {
@@ -158,6 +199,12 @@ export function OnboardingWizard() {
   const [selectedDiff, setSelectedDiff] = useState<DifficultyLevel>(
     (config.difficulty as DifficultyLevel) || 'Medium'
   );
+  const [selectedStrictness, setSelectedStrictness] = useState<StrictnessLevel>(
+    config.strictness || 'Standard'
+  );
+  const [proctoringEnabled, setProctoringEnabled] = useState<boolean>(
+    config.proctoringEnabled ?? true
+  );
   const [candidateName, setCandidateName] = useState<string>(
     config.candidateName || 'Alex Chen'
   );
@@ -228,6 +275,8 @@ export function OnboardingWizard() {
       experienceLevel: selectedExp,
       interviewType: selectedType,
       difficulty: selectedDiff,
+      strictness: selectedStrictness,
+      proctoringEnabled,
       candidateName,
       resumeText,
     });
@@ -239,6 +288,8 @@ export function OnboardingWizard() {
     setSelectedExp('Junior (0-2 yrs)');
     setSelectedType('Behavioral (STAR)');
     setSelectedDiff('Medium');
+    setSelectedStrictness('Standard');
+    setProctoringEnabled(true);
     setCandidateName('Alex (Demo Candidate)');
     setStep(4);
   };
@@ -583,6 +634,84 @@ export function OnboardingWizard() {
                 })}
               </div>
 
+              {/* STRICTNESS CALIBRATION */}
+              <div className="pt-2 border-t border-[var(--outline)]/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                      <Scale className="w-4 h-4 text-[var(--primary)]" />
+                      <span>Evaluation Strictness & Grading Rubric</span>
+                    </h3>
+                    <p className="text-xs text-[var(--text-secondary)]">
+                      Calibrates the evaluation harshness and follow-up aggressiveness of the interviewer.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {STRICTNESS_MODES.map((mode) => {
+                    const isSelected = selectedStrictness === mode.id;
+                    return (
+                      <div
+                        key={mode.id}
+                        onClick={() => setSelectedStrictness(mode.id)}
+                        className={`p-3.5 rounded-[20px] border cursor-pointer transition-all duration-200 flex flex-col justify-between gap-2 select-none ${
+                          isSelected
+                            ? 'bg-[var(--primary-container)]/70 border-[var(--primary)] shadow-sm ring-1 ring-[var(--primary)]'
+                            : 'bg-[var(--surface-container)]/50 border-[var(--outline)]/40 hover:bg-[var(--surface-container)]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--outline)]/30 flex items-center gap-1">
+                            <span>{mode.icon}</span>
+                            <span>{mode.badge}</span>
+                          </span>
+                          {isSelected && (
+                            <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-[var(--text-primary)]">
+                            {mode.label}
+                          </h4>
+                          <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-0.5">
+                            {mode.desc}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ANTI-CHEAT & LIVE PROCTORING SHIELD */}
+              <div className="p-4 rounded-[22px] bg-[var(--surface-container)]/60 border border-[var(--outline)]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
+                    <h4 className="text-sm font-bold text-[var(--text-primary)]">
+                      Live Anti-Cheat & Authenticity Proctoring Shield
+                    </h4>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    Passively monitors tab switching, unnatural clipboard pastes, and synthetic phrasing to simulate real corporate assessment standards.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setProctoringEnabled(!proctoringEnabled)}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                    proctoringEnabled
+                      ? 'bg-[#386A4A] text-white shadow-sm'
+                      : 'bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--outline)]/40'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>{proctoringEnabled ? 'Proctor Shield: Armed' : 'Proctor: Disabled'}</span>
+                </button>
+              </div>
+
               {/* Summary Pill Bar */}
               <div className="p-4 rounded-[20px] bg-[var(--surface-container)] border border-[var(--outline)]/30 space-y-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)] block">
@@ -592,7 +721,9 @@ export function OnboardingWizard() {
                   <Chip selected>{selectedRole}</Chip>
                   <Chip selected>{selectedExp}</Chip>
                   <Chip selected>{selectedType}</Chip>
-                  <Chip selected>{selectedDiff} Bar</Chip>
+                  <Chip selected>{selectedDiff} Difficulty</Chip>
+                  <Chip selected>{selectedStrictness} Strictness</Chip>
+                  <Chip selected>{proctoringEnabled ? '🛡️ Proctor Shield Active' : 'No Proctor'}</Chip>
                   {candidateName && <Chip>{candidateName}</Chip>}
                   {resumeText && <Chip selected>Resume Tailored</Chip>}
                   {detectedSkills.slice(0, 3).map((sk) => (

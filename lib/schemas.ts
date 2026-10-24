@@ -14,11 +14,15 @@ export const InterviewTypeSchema = z.string().min(1, 'Interview type is required
 
 export const DifficultyLevelSchema = z.string().min(1, 'Difficulty level is required');
 
+export const StrictnessLevelSchema = z.enum(['Lenient', 'Standard', 'Strict', 'Bar-Raiser']);
+
 export const InterviewConfigSchema = z.object({
   role: JobRoleSchema,
   experienceLevel: ExperienceLevelSchema,
   interviewType: InterviewTypeSchema,
   difficulty: DifficultyLevelSchema,
+  strictness: StrictnessLevelSchema.optional().default('Standard'),
+  proctoringEnabled: z.boolean().optional().default(true),
   candidateName: z.string().optional(),
   targetCompany: z.string().optional(),
   resumeText: z.string().optional(),
@@ -68,9 +72,73 @@ export const ImprovedAnswerBlueprintSchema = z.union([
   }),
 ]);
 
+export const CheatingEventSchema = z.object({
+  id: z.string(),
+  type: z.enum(['tab_switch', 'window_blur', 'clipboard_paste', 'synthetic_ai_pattern', 'gaze_anomaly']),
+  timestamp: z.number(),
+  timeString: z.string(),
+  description: z.string(),
+  severity: z.enum(['info', 'warning', 'critical']),
+  details: z.string().optional(),
+});
+
+export const CheatingDetectionReportSchema = z.object({
+  integrityScore: z.number().min(0).max(100),
+  status: z.enum(['Verified Authentic', 'Minor Irregularities', 'Suspicious Patterns', 'Flagged for Review']),
+  tabSwitchCount: z.number(),
+  totalUnfocusedSeconds: z.number(),
+  pasteCount: z.number(),
+  totalPastedCharacters: z.number(),
+  typingCadenceWpmBurst: z.number(),
+  aiPatternRiskScore: z.number(),
+  events: z.array(CheatingEventSchema),
+  authenticitySummary: z.string(),
+  integrityVerified: z.boolean(),
+});
+
+export const CompetencyPillarSchema = z.object({
+  name: z.string(),
+  candidateScore: z.number(),
+  benchmarkScore: z.number(),
+  status: z.enum(['Exceeds Benchmark', 'Meets Benchmark', 'Below Benchmark']),
+  percentile: z.number(),
+  insight: z.string(),
+});
+
+export const ActionPlanMilestoneSchema = z.object({
+  dayRange: z.string(),
+  phase: z.string(),
+  focusArea: z.string(),
+  actionItem: z.string(),
+  expectedImpact: z.string(),
+  drillType: z.enum(['Technical', 'STAR Storytelling', 'System Architecture', 'Mock Under Pressure']),
+});
+
+export const CompanyFitTierSchema = z.object({
+  tier: z.string(),
+  readiness: z.enum(['High Match', 'Competitive', 'Stretch Target']),
+  examples: z.string(),
+});
+
+export const JobReadinessPatternSchema = z.object({
+  readinessIndex: z.number().min(0).max(100),
+  readinessTier: z.enum(['Immediate Placement Ready', 'Near Placement Ready', 'Targeted Coaching Needed', 'Foundational Stage']),
+  industryBenchmarkScore: z.number(),
+  percentileRanking: z.number(),
+  passingProbability: z.number(),
+  targetRoleBenchmark: z.string(),
+  hiringVerdict: z.enum(['Strong Hire', 'Hire', 'Lean Hire', 'Needs Coaching']),
+  companyFitTiers: z.array(CompanyFitTierSchema),
+  competencyPillars: z.array(CompetencyPillarSchema),
+  strengthsHighlights: z.array(z.string()),
+  criticalGaps: z.array(z.string()),
+  fourteenDayRoadmap: z.array(ActionPlanMilestoneSchema),
+});
+
 export const EvaluationReportSchema = z.object({
   id: z.string().optional().default(() => `eval_${Date.now()}`),
   completedAt: z.string().optional().default(() => new Date().toISOString()),
+  strictness: StrictnessLevelSchema.optional(),
   overallScore: z.number().min(1).max(10),
   verdict: z.enum(['Strong Hire', 'Hire', 'Lean Hire', 'Needs Coaching']).optional(),
   executiveSummary: z.string().min(20),
@@ -83,6 +151,8 @@ export const EvaluationReportSchema = z.object({
   improvedAnswerBlueprint: ImprovedAnswerBlueprintSchema,
   nextSteps: z.array(z.string()).min(1),
   keyTakeaways: z.array(z.string()).optional(),
+  integrityReport: CheatingDetectionReportSchema.optional(),
+  jobReadiness: JobReadinessPatternSchema.optional(),
 });
 
 export const EvaluateApiRequestSchema = z.object({
@@ -90,4 +160,5 @@ export const EvaluateApiRequestSchema = z.object({
   history: z.array(ChatMessageSchema).optional(),
   transcript: z.array(ChatMessageSchema).optional(),
   metrics: z.record(z.string(), z.unknown()).optional(),
+  integrityData: z.record(z.string(), z.unknown()).optional(),
 });

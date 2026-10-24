@@ -35,6 +35,8 @@ const DEFAULT_CONFIG: InterviewConfig = {
   experienceLevel: 'Junior (0-2 yrs)',
   interviewType: 'Behavioral (STAR)',
   difficulty: 'Medium',
+  strictness: 'Standard',
+  proctoringEnabled: true,
   candidateName: 'Candidate',
 };
 
@@ -47,6 +49,7 @@ const DEFAULT_BASELINE_HISTORY: SessionHistoryItem[] = [
     experienceLevel: 'Junior (0-2 yrs)',
     interviewType: 'Behavioral (STAR)',
     difficulty: 'Medium',
+    strictness: 'Standard',
     overallScore: 6.8,
     verdict: 'Lean Hire',
     dimensions: {
@@ -61,6 +64,8 @@ const DEFAULT_BASELINE_HISTORY: SessionHistoryItem[] = [
       paceAssessment: 'Ideal Pace',
       fillerWordCount: 7,
     },
+    integrityScore: 98,
+    readinessIndex: 68,
     summary: 'Initial baseline evaluation. Good raw potential, but lacked STAR structure and concrete metrics in the impact phase.',
   },
 ];
@@ -117,6 +122,7 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
       experienceLevel: currentCfg.experienceLevel,
       interviewType: currentCfg.interviewType,
       difficulty: currentCfg.difficulty,
+      strictness: currentCfg.strictness || newReport.strictness || 'Standard',
       overallScore: newReport.overallScore,
       verdict: newReport.verdict || 'Hire',
       dimensions: {
@@ -126,6 +132,9 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
         answerQuality: newReport.dimensions.answerQuality.score,
       },
       metrics: newReport.paceMetrics,
+      videoMetrics: newReport.videoMetrics,
+      integrityScore: newReport.integrityReport?.integrityScore ?? 98,
+      readinessIndex: newReport.jobReadiness?.readinessIndex ?? Math.round(newReport.overallScore * 10),
       summary: newReport.executiveSummary,
       report: newReport,
     };

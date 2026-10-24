@@ -11,12 +11,15 @@ import {
   InterviewApiResponse,
   EvaluationReport,
   PaceMetrics,
+  CheatingDetectionReport,
 } from '@/types';
 import { EvaluationReportSchema } from '@/lib/schemas';
 import { getInterviewSystemPrompt, getEvaluationSystemPrompt } from '@/lib/prompts';
 import {
   getFallbackQuestion,
   FALLBACK_EVALUATION_REPORT,
+  computeJobReadinessPattern,
+  computeIntegrityReport,
 } from '@/lib/fallback-data';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
@@ -144,28 +147,40 @@ Remember to output JSON adhering to the specified format.`;
 export async function generateEvaluationReport(
   config: InterviewConfig,
   transcript: ChatMessage[],
-  paceMetrics?: Partial<PaceMetrics>
+  paceMetrics?: Partial<PaceMetrics>,
+  integrityData?: Partial<CheatingDetectionReport>
 ): Promise<EvaluationReport> {
   const systemPrompt = getEvaluationSystemPrompt(config, transcript);
   const userPrompt = `Analyze the provided interview transcript according to the 4-dimension rubric.
 Enforce verbatim quotes for all evidence items. Ensure coaching tips are concrete and actionable.
 Output purely valid JSON.`;
 
+  const integrityReport = computeIntegrityReport(
+    integrityData,
+    paceMetrics?.durationMinutes ? Math.round(paceMetrics.durationMinutes * 60) : 240
+  );
+
   try {
     const rawResult = await callGeminiJson<Record<string, unknown>>(systemPrompt, userPrompt, 0.2);
 
     if (rawResult && rawResult.dimensions) {
+      const overallScore = typeof rawResult.overallScore === 'number' ? rawResult.overallScore : 7.5;
+      const jobReadiness = computeJobReadinessPattern(config, overallScore, rawResult.dimensions);
+
       const candidateReport = {
         id: `eval_${Date.now()}`,
         completedAt: new Date().toISOString(),
-        overallScore: typeof rawResult.overallScore === 'number' ? rawResult.overallScore : 7.5,
-        verdict: (rawResult.verdict as any) || 'Hire',
+        strictness: config.strictness || 'Standard',
+        overallScore,
+        verdict: (rawResult.verdict as any) || jobReadiness.hiringVerdict || 'Hire',
         executiveSummary: (rawResult.executiveSummary as string) || '',
         dimensions: rawResult.dimensions as any,
         improvedAnswerBlueprint: (rawResult.improvedAnswerBlueprint as any) || '',
         keyTakeaways: Array.isArray(rawResult.keyTakeaways) ? (rawResult.keyTakeaways as string[]) : [],
         nextSteps: Array.isArray(rawResult.nextSteps) ? (rawResult.nextSteps as string[]) : [],
         paceMetrics: paceMetrics as PaceMetrics | undefined,
+        integrityReport,
+        jobReadiness,
       };
 
       const validated = EvaluationReportSchema.safeParse(candidateReport);
@@ -178,10 +193,31 @@ Output purely valid JSON.`;
     console.error('[ViewPilot Gemini] Evaluation generation error:', err);
   }
 
-  // Fallback report
+  // Fallback report calibrated with actual config, strictness, and computed job readiness
+  const fallbackScore =
+    config.strictness === 'Bar-Raiser'
+      ? 7.6
+      : config.strictness === 'Strict'
+      ? 7.9
+      : config.strictness === 'Lenient'
+      ? 8.9
+      : 8.4;
+
+  const jobReadiness = computeJobReadinessPattern(
+    config,
+    fallbackScore,
+    FALLBACK_EVALUATION_REPORT.dimensions
+  );
+
   return {
     ...FALLBACK_EVALUATION_REPORT,
     id: `eval_fallback_${Date.now()}`,
     completedAt: new Date().toISOString(),
+    strictness: config.strictness || 'Standard',
+    overallScore: fallbackScore,
+    verdict: jobReadiness.hiringVerdict,
+    paceMetrics: paceMetrics as PaceMetrics | undefined,
+    integrityReport,
+    jobReadiness,
   };
 }

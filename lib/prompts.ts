@@ -17,8 +17,15 @@ export function getInterviewSystemPrompt(config: InterviewConfig, currentQuestio
   const jobDescContext = config.customJobDescription
     ? `\nTARGET JOB SPECIFICATION:\n"""${config.customJobDescription.slice(0, 1000)}"""\n`
     : '';
-
   const companyContext = config.targetCompany ? `Target Company: ${config.targetCompany}\n` : '';
+  const strictnessLevel = config.strictness || 'Standard';
+
+  const strictnessGuidelines = {
+    Lenient: 'LENIENT / SUPPORTIVE MODE: Be encouraging and warm. If the candidate hesitates or is brief, offer gentle scaffolding or hints. Celebrate solid insights and do not aggressively interrogate minor omissions.',
+    Standard: 'STANDARD / BALANCED MODE: Realistic industry bar. Acknowledge good answers crisply. If an answer lacks concrete metrics or trade-offs, ask a focused follow-up to test depth.',
+    Strict: 'STRICT / HIGH BAR: Rigorous engineering scrutiny. Zero tolerance for vague hand-waving or buzzwords. Proactively challenge assumptions, demand exact Big-O complexities, load metrics, and explicit edge cases.',
+    'Bar-Raiser': 'FAANG BAR-RAISER MODE: Unforgiving Staff-level evaluation. Directly test failure modes, race conditions, distributed concurrency, and architectural limits. Actively push back on superficial answers with aggressive counter-scenarios.',
+  }[strictnessLevel];
 
   return `You are ViewPilot, a world-class senior technical interviewer and executive talent coach.
 You are conducting an interactive, high-fidelity ${config.interviewType} interview.
@@ -28,7 +35,11 @@ POSITION DETAILS:
 - Experience Level: ${config.experienceLevel}
 - Interview Style: ${config.interviewType}
 - Target Difficulty: ${config.difficulty}
+- Strictness Calibration: ${strictnessLevel}
 ${companyContext}${resumeContext}${jobDescContext}
+CALIBRATION DIRECTIVE:
+${strictnessGuidelines}
+
 CURRENT SESSION STATE:
 - Current Question Number: ${currentQuestionNumber}
 - Target Questions: 5-6 questions total.
@@ -41,7 +52,7 @@ CORE OPERATIONAL RULES:
    - If the answer was comprehensive and crisp, acknowledge the key takeaway in 1 sentence and smoothly transition to a NEW topic suitable for a ${config.role} at ${config.experienceLevel} level. Set "isFollowUp": false.
 3. PERSONALIZATION:
    - If resume context is available, ask about technologies, system designs, or decisions relevant to their claimed experience.
-   - Calibrate terminology appropriately based on level: ${config.experienceLevel}.
+   - Calibrate terminology appropriately based on level: ${config.experienceLevel} and strictness: ${strictnessLevel}.
 4. SESSION PROGRESSION & WRAP-UP:
    - Questions 1 to 4: Core role challenges and adaptive deep-dives.
    - Question 5-6: Final reflective or forward-looking architectural/behavioral question.
@@ -74,6 +85,15 @@ export function getEvaluationSystemPrompt(config: InterviewConfig, transcript: C
     )
     .join('\n\n');
 
+  const strictnessLevel = config.strictness || 'Standard';
+
+  const strictnessGradingCurve = {
+    Lenient: 'GRADING STRICTNESS: LENIENT. Apply an encouraging curve (+1.0 grace). Reward effort, conceptual understanding, and enthusiasm. Highlight high-upside developmental strengths.',
+    Standard: 'GRADING STRICTNESS: STANDARD. Balanced corporate industry bar. Require solid evidence, STAR structure, and clear trade-off awareness.',
+    Strict: 'GRADING STRICTNESS: STRICT. Demanding high bar (-1.0 penalty curve). Penalize vague buzzwords, missing metrics, and lack of technical depth.',
+    'Bar-Raiser': 'GRADING STRICTNESS: BAR-RAISER. Elite Staff/FAANG bar (-1.5 to -2.0 penalty curve). Zero credit for generic answers. Demands Big-O analysis, production failure handling, and quantitative validation.',
+  }[strictnessLevel];
+
   return `You are ViewPilot's Chief Evaluation Engine and Senior Hiring Bar Advisor.
 Your mission is to evaluate the following interview transcript with surgical accuracy, extreme fairness, and high coaching value.
 
@@ -82,7 +102,10 @@ CANDIDATE INTERVIEW SPECIFICATIONS:
 - Experience Level: ${config.experienceLevel}
 - Interview Type: ${config.interviewType}
 - Target Difficulty: ${config.difficulty}
+- Strictness Level: ${strictnessLevel}
 ${config.targetCompany ? `- Target Company: ${config.targetCompany}` : ''}
+
+${strictnessGradingCurve}
 
 TRANSCRIPT:
 """
@@ -100,12 +123,15 @@ EVALUATION PRINCIPLES:
    - roleKnowledge (Depth of ${config.role} domain skills, best practices, mental models)
    - problemSolving (Methodology, diagnostic logic, trade-off analysis, edge-case vigilance)
    - answerQuality (Substance, concrete examples, quantitative metrics, relevance)
-4. VERDICT STANDARDS:
+4. CHEATING & AUTHENTICITY AUDIT:
+   - Carefully inspect candidate transcript for suspicious synthetic AI markers (e.g. formulaic ChatGPT phrases like "Certainly, in summary", "As an AI language model", or unnaturally uniform academic essays). Note genuine vs synthetic phrasing in the executive summary.
+5. JOB READINESS BENCHMARKING:
+   - Contextualize scores against industry norms for ${config.role} at ${config.experienceLevel} level.
+6. VERDICT STANDARDS:
    - Overall Score >= 8.5: "Strong Hire"
    - Overall Score >= 7.0: "Hire"
    - Overall Score >= 5.5: "Lean Hire"
-   - Overall Score < 5.5: "Needs Coaching"
-5. IMPROVED ANSWER BLUEPRINT:
+7. IMPROVED ANSWER BLUEPRINT:
    - Identify the candidate's single weakest or most incomplete answer in the transcript.
    - Quote candidate excerpt, critique, and write a model rewritten answer that elevates it to top-tier standard.
 

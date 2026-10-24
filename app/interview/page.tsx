@@ -19,6 +19,9 @@ import {
   Bot,
   Video,
   VideoOff,
+  ShieldCheck,
+  ShieldAlert,
+  Scale,
 } from 'lucide-react';
 import { useInterview } from '@/lib/interview-context';
 import { Button } from '@/components/ui/Button';
@@ -27,7 +30,12 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { ChatMessage } from '@/components/ChatMessage';
 import { PaceCoach } from '@/components/PaceCoach';
 import { CandidateCamera } from '@/components/CandidateCamera';
-import { ChatMessage as ChatMessageType, VideoPresenceMetrics } from '@/types';
+import {
+  ChatMessage as ChatMessageType,
+  VideoPresenceMetrics,
+  CheatingEvent,
+  CheatingDetectionReport,
+} from '@/types';
 import { speakQuestion, stopSpeaking } from '@/lib/voice';
 
 export default function InterviewPage() {
@@ -52,6 +60,16 @@ export default function InterviewPage() {
   const [robotStatus, setRobotStatus] = useState<{ online: boolean; expression?: string } | null>(null);
   const [isCameraEnabled, setIsCameraEnabled] = useState(true);
   const [videoMetrics, setVideoMetrics] = useState<VideoPresenceMetrics | null>(null);
+
+  // Live Anti-Cheat & Authenticity Proctoring Telemetry
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [totalUnfocusedSeconds, setTotalUnfocusedSeconds] = useState(0);
+  const [pasteCount, setPasteCount] = useState(0);
+  const [totalPastedCharacters, setTotalPastedCharacters] = useState(0);
+  const [aiPatternRiskScore, setAiPatternRiskScore] = useState(6);
+  const [cheatingEvents, setCheatingEvents] = useState<CheatingEvent[]>([]);
+  const [proctorToast, setProctorToast] = useState<{ msg: string; severity: 'warning' | 'info' } | null>(null);
+  const unfocusedStartTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
@@ -79,6 +97,53 @@ export default function InterviewPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Anti-Cheat & Live Proctor: Tab visibility & window blur monitoring
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleVisibility = () => {
+      const elapsedMins = Math.floor(elapsedSeconds / 60);
+      const elapsedSecs = elapsedSeconds % 60;
+      const timeStr = `${elapsedMins.toString().padStart(2, '0')}:${elapsedSecs.toString().padStart(2, '0')}`;
+
+      if (document.hidden) {
+        unfocusedStartTimeRef.current = Date.now();
+        setTabSwitchCount((prev) => {
+          const next = prev + 1;
+          setProctorToast({
+            msg: `⚠️ Proctor Shield: Window focus shift / tab switch recorded (#${next}). Maintain tab presence for authentic score.`,
+            severity: 'warning',
+          });
+          setTimeout(() => setProctorToast(null), 4500);
+          return next;
+        });
+      } else {
+        if (unfocusedStartTimeRef.current) {
+          const awaySec = Math.max(1, Math.round((Date.now() - unfocusedStartTimeRef.current) / 1000));
+          setTotalUnfocusedSeconds((prev) => prev + awaySec);
+          setCheatingEvents((prev) => [
+            ...prev,
+            {
+              id: `evt-tab-${Date.now()}`,
+              type: 'tab_switch',
+              timestamp: Date.now(),
+              timeString: timeStr,
+              description: `Tab switch detected: candidate away for ${awaySec}s`,
+              severity: awaySec > 4 ? 'warning' : 'info',
+              details: `Unfocused duration: ${awaySec} seconds`,
+            },
+          ]);
+          unfocusedStartTimeRef.current = null;
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [elapsedSeconds]);
 
   // Poll robot initial connection
   useEffect(() => {
@@ -382,6 +447,16 @@ export default function InterviewPage() {
         fillerWordCount: fillerCount,
       };
 
+      const integrityData: Partial<CheatingDetectionReport> = {
+        tabSwitchCount,
+        totalUnfocusedSeconds,
+        pasteCount,
+        totalPastedCharacters,
+        typingCadenceWpmBurst: averageWpm,
+        aiPatternRiskScore,
+        events: cheatingEvents,
+      };
+
       const response = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -390,6 +465,7 @@ export default function InterviewPage() {
           history: messages,
           metrics,
           videoMetrics: effectiveVideoMetrics,
+          integrityData,
         }),
       });
 
@@ -499,8 +575,22 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
                 {config.interviewType}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mt-0.5">
+            <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mt-0.5 flex-wrap">
               <span>Seniority: {config.experienceLevel}</span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1 font-semibold text-[var(--text-primary)]">
+                <Scale className="w-3.5 h-3.5 text-[var(--primary)]" />
+                <span>{config.strictness || 'Standard'} Bar</span>
+              </span>
+              <span>•</span>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                tabSwitchCount > 0
+                  ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                  : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+              }`}>
+                <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                <span>{tabSwitchCount > 0 ? `${tabSwitchCount} Focus Alerts` : 'Proctor Clean'}</span>
+              </span>
               <span>•</span>
               <span className="flex items-center gap-1 font-mono">
                 <Clock className="w-3.5 h-3.5 text-[var(--primary)]" />

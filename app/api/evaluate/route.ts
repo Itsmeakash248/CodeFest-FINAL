@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
 
     const metrics = rawBody.metrics;
     const videoMetrics = rawBody.videoMetrics;
-    const report = await generateEvaluationReport(config, transcript, metrics);
+    const integrityData = rawBody.integrityData;
+    const report = await generateEvaluationReport(config, transcript, metrics, integrityData);
     if (videoMetrics) {
       report.videoMetrics = videoMetrics;
     }
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
       id: `eval_fallback_${Date.now()}`,
       completedAt: new Date().toISOString(),
       ...(rawBody?.videoMetrics ? { videoMetrics: rawBody.videoMetrics } : {}),
+      ...(rawBody?.config?.strictness ? { strictness: rawBody.config.strictness } : {}),
     };
     return NextResponse.json(
       {
