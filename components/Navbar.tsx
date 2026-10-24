@@ -73,19 +73,25 @@ export function Navbar() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           <Link
-            href="/login"
+            href="/signin"
             className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
           >
-            <span>Account</span>
+            <span>Sign In</span>
+          </Link>
+          <Link
+            href="/signup"
+            className="hidden sm:inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full border border-[var(--outline)]/40 hover:border-[var(--primary)] text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
+          >
+            <span>Sign Up</span>
           </Link>
           <Link
             href="/setup"
             className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full text-[var(--on-primary)] bg-[var(--primary)] hover:opacity-90 shadow-expressive-sm transition-all"
           >
             <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span>Start Practice</span>
+            <span>Practice</span>
           </Link>
           <ThemeToggle />
         </div>

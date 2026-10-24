@@ -123,10 +123,13 @@ export default function LandingNav({ user }: LandingNavProps) {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn btn-ghost !px-4.5 !py-2.5 !text-[13.5px]">
-                Log in
+              <Link href="/signin" className="btn btn-ghost !px-4 !py-2.5 !text-[13px]">
+                Sign in
               </Link>
-              <Link href="/interview" className="btn btn-primary !px-5 !py-2.5 !text-[13.5px]">
+              <Link href="/signup" className="btn btn-soft !px-4 !py-2.5 !text-[13px]">
+                Sign up
+              </Link>
+              <Link href="/interview" className="btn btn-primary !px-5 !py-2.5 !text-[13px]">
                 Start practicing
                 <ArrowUpRight size={14} />
               </Link>

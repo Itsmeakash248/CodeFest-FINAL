@@ -165,6 +165,10 @@ export async function login(email: string, name?: string): Promise<LoginResponse
   return postJson<LoginResponse>("/api/auth/login", { email, name });
 }
 
+export async function signup(email: string, name?: string, role?: string): Promise<LoginResponse> {
+  return postJson<LoginResponse>("/api/auth/signup", { email, name, role });
+}
+
 export async function logout(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST" });
 }
