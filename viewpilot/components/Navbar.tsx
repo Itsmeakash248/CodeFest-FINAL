@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, TrendingUp } from 'lucide-react';
 
 export function Navbar() {
   return (
@@ -39,12 +39,19 @@ export function Navbar() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/progress"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full text-[var(--text-primary)] bg-[var(--surface-container)] hover:bg-[var(--surface-container-high)] border border-[var(--outline)]/30 transition-all"
+          >
+            <TrendingUp className="w-3.5 h-3.5 text-[var(--primary)]" />
+            <span>Progress</span>
+          </Link>
           <Link
             href="/setup"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full text-[var(--text-primary)] bg-[var(--surface-container)] hover:bg-[var(--surface-container-high)] border border-[var(--outline)]/30 transition-all"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full text-[var(--on-primary)] bg-[var(--primary)] hover:opacity-90 shadow-expressive-sm transition-all"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[var(--primary)]" />
+            <Sparkles className="w-3.5 h-3.5 text-white" />
             <span>Practice Session</span>
           </Link>
           <ThemeToggle />

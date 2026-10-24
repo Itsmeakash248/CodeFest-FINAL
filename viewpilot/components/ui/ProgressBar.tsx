@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge';
 export interface ProgressBarProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number; // 0 - 100
   max?: number;
-  variant?: 'primary' | 'success' | 'warning' | 'error' | 'auto';
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'success' | 'warning' | 'error' | 'auto';
   showLabel?: boolean;
   size?: 'sm' | 'md' | 'lg';
 }
@@ -24,7 +24,11 @@ export function ProgressBar({
   const percentage = Math.min(100, Math.max(0, Math.round((value / max) * 100)));
 
   let colorClass = 'bg-[var(--primary)]';
-  if (variant === 'success' || (variant === 'auto' && percentage >= 75)) {
+  if (variant === 'secondary') {
+    colorClass = 'bg-[var(--secondary)]';
+  } else if (variant === 'tertiary') {
+    colorClass = 'bg-[var(--tertiary)]';
+  } else if (variant === 'success' || (variant === 'auto' && percentage >= 75)) {
     colorClass = 'bg-[var(--success)]';
   } else if (variant === 'warning' || (variant === 'auto' && percentage >= 50 && percentage < 75)) {
     colorClass = 'bg-[var(--warning)]';

@@ -154,9 +154,31 @@ export interface EvaluateApiRequest {
   metrics?: Partial<PaceMetrics>;
 }
 
+export interface SessionHistoryItem {
+  id: string;
+  completedAt: string;
+  timestamp: number;
+  role: string;
+  experienceLevel: string;
+  interviewType: string;
+  difficulty: string;
+  overallScore: number;
+  verdict: Verdict;
+  dimensions: {
+    communication: number;
+    roleKnowledge: number;
+    problemSolving: number;
+    answerQuality: number;
+  };
+  metrics?: Partial<PaceMetrics>;
+  summary: string;
+  report?: EvaluationReport;
+}
+
 export interface EvaluateApiResponse {
   success: boolean;
   report: EvaluationReport;
   isFallback?: boolean;
   notice?: string;
 }
+

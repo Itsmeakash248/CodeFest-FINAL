@@ -246,15 +246,15 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card variant="elevated" className="space-y-4 hover:border-[var(--primary)]/50 transition-colors">
             <div className="w-12 h-12 rounded-full bg-[var(--primary-container)] text-[var(--on-primary-container)] flex items-center justify-center">
               <Brain className="w-6 h-6 text-[var(--primary)]" />
             </div>
-            <h3 className="text-xl font-bold text-[var(--text-primary)]">
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">
               Adaptive Follow-ups
             </h3>
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
               Interviews aren't rigid scripts. ViewPilot dynamically assesses your response and probes deeper into vague claims or challenges assumptions just like real hiring managers.
             </p>
           </Card>
@@ -263,10 +263,10 @@ export default function LandingPage() {
             <div className="w-12 h-12 rounded-full bg-[var(--secondary-container)] text-[var(--secondary)] flex items-center justify-center">
               <Target className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-[var(--text-primary)]">
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">
               4-Dimension Rubrics
             </h3>
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
               Every practice session is graded systematically on Communication, Role Knowledge, Problem Solving, and Answer Quality with transparent criteria.
             </p>
           </Card>
@@ -275,11 +275,47 @@ export default function LandingPage() {
             <div className="w-12 h-12 rounded-full bg-[var(--tertiary-container)] text-[var(--tertiary)] flex items-center justify-center">
               <Award className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-[var(--text-primary)]">
-              Verbatim Evidence
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">
+              Verbatim Evidence Grounding
             </h3>
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
               Zero mysterious scores. Every feedback point directly quotes phrases from your transcript, providing clear blueprints to transform weak answers into compelling stories.
+            </p>
+          </Card>
+
+          <Card variant="elevated" className="space-y-4 hover:border-[var(--success)]/50 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-[#386A4A]/15 text-[#386A4A] dark:text-[#9BD0A6] flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">
+              Fairness & Bias Safeguards
+            </h3>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+              Strict deterministic temperature bounds and demographic-neutral prompt constraints ensure consistent scoring without hallucinated feedback.
+            </p>
+          </Card>
+
+          <Card variant="elevated" className="space-y-4 hover:border-[var(--warning)]/50 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-[#8A5B16]/15 text-[#8A5B16] dark:text-[#F0C078] flex items-center justify-center">
+              <Zap className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">
+              Speech & Cadence Telemetry
+            </h3>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+              Real-time pace coaching tracks words-per-minute (WPM), speech cadence, and vocal filler words to refine your delivery.
+            </p>
+          </Card>
+
+          <Card variant="elevated" className="space-y-4 hover:border-[var(--primary)]/50 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-[var(--primary-container)] text-[var(--primary)] flex items-center justify-center">
+              <MessageSquareCheck className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">
+              Multi-Session Progress
+            </h3>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+              Track your Job Readiness Index and competency trajectory across attempts, auditing progress from your first diagnostic baseline to placement ready.
             </p>
           </Card>
         </div>

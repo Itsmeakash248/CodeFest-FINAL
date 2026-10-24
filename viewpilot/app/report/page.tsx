@@ -15,13 +15,17 @@ import {
   Layers,
   Activity,
   Share2,
+  TrendingUp,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useInterview } from '@/lib/interview-context';
 import { EvaluationReport } from '@/types';
 import { FALLBACK_EVALUATION_REPORT } from '@/lib/fallback-data';
 import { ScoreCard } from '@/components/ScoreCard';
 import { EvidencePanel } from '@/components/EvidencePanel';
 import { CoachingTips } from '@/components/CoachingTips';
+import { FairnessSection } from '@/components/FairnessSection';
+import { CommunicationTelemetry } from '@/components/CommunicationTelemetry';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -87,6 +91,17 @@ export default function ReportPage() {
           </button>
 
           <div className="flex items-center gap-2.5">
+            <Link href="/progress">
+              <Button
+                variant="tonal"
+                size="sm"
+                className="rounded-full text-xs"
+              >
+                <TrendingUp className="w-3.5 h-3.5 mr-1.5 text-[var(--primary)]" />
+                <span>Track Progress</span>
+              </Button>
+            </Link>
+
             <Button
               variant="tonal"
               size="sm"
@@ -260,6 +275,13 @@ export default function ReportPage() {
           </section>
         )}
 
+        {/* Communication & Speech Delivery Telemetry */}
+        {paceMetrics && (
+          <section className="space-y-4">
+            <CommunicationTelemetry metrics={paceMetrics} />
+          </section>
+        )}
+
         {/* Model Answer Blueprint & Action Plan */}
         <section className="space-y-4">
           <CoachingTips
@@ -267,6 +289,11 @@ export default function ReportPage() {
             nextSteps={nextSteps}
             keyTakeaways={keyTakeaways}
           />
+        </section>
+
+        {/* AI Reliability, Fairness & Limitations Section */}
+        <section className="space-y-4">
+          <FairnessSection />
         </section>
 
         {/* Bottom CTA Banner */}

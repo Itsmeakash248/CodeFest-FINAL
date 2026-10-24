@@ -223,12 +223,11 @@ export default function InterviewPage() {
 
       if (response.ok) {
         const data = await response.json();
-        addMessage({
-          role: 'interviewer',
-          content: data.question || data.content,
-          questionNumber: data.isFollowUp ? undefined : currentQuestionCount + 1,
-          isFollowUp: Boolean(data.isFollowUp),
-        });
+        deliverInterviewerQuestion(
+          data.question || data.content,
+          data.isFollowUp ? undefined : currentQuestionCount + 1,
+          Boolean(data.isFollowUp)
+        );
 
         if (data.isComplete || currentQuestionCount + 1 >= maxQuestions) {
           addMessage({
@@ -261,12 +260,11 @@ export default function InterviewPage() {
 
       const isFinal = currentQuestionCount >= maxQuestions;
 
-      addMessage({
-        role: 'interviewer',
-        content: nextContent,
-        questionNumber: willBeFollowUp ? undefined : currentQuestionCount + 1,
-        isFollowUp: willBeFollowUp,
-      });
+      deliverInterviewerQuestion(
+        nextContent,
+        willBeFollowUp ? undefined : currentQuestionCount + 1,
+        willBeFollowUp
+      );
 
       if (isFinal) {
         addMessage({
