@@ -21,3 +21,5 @@ build/
 .~lock.*#
 .~lock.*
 *.tmp
+next-env.d.ts
+
