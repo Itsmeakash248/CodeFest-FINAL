@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   Mic,
   MicOff,
+  Volume2,
+  VolumeX,
   ChevronRight,
 } from 'lucide-react';
 import { useInterview } from '@/lib/interview-context';
@@ -22,6 +24,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { ChatMessage } from '@/components/ChatMessage';
 import { PaceCoach } from '@/components/PaceCoach';
 import { ChatMessage as ChatMessageType } from '@/types';
+import { speakQuestion, stopSpeaking } from '@/lib/voice';
 
 export default function InterviewPage() {
   const router = useRouter();
@@ -41,6 +44,13 @@ export default function InterviewPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -121,6 +131,18 @@ export default function InterviewPage() {
     }
   };
 
+  const deliverInterviewerQuestion = (text: string, qNum?: number, isFollowUp?: boolean) => {
+    addMessage({
+      role: 'interviewer',
+      content: text,
+      questionNumber: qNum,
+      isFollowUp,
+    });
+    if (autoSpeak) {
+      speakQuestion(text);
+    }
+  };
+
   const fetchInitialQuestion = async () => {
     setIsLoading(true);
     try {
@@ -136,12 +158,7 @@ export default function InterviewPage() {
 
       if (response.ok) {
         const data = await response.json();
-        addMessage({
-          role: 'interviewer',
-          content: data.question || data.content,
-          questionNumber: 1,
-          isFollowUp: false,
-        });
+        deliverInterviewerQuestion(data.question || data.content, 1, false);
       } else {
         throw new Error('Interview API response not OK');
       }
@@ -161,12 +178,7 @@ export default function InterviewPage() {
         fallbackQuestions[config.role] ||
         `Welcome to your ${config.interviewType} interview for the ${config.role} position. To start off, walk me through a significant technical challenge you solved recently. What was your specific contribution, and what trade-offs did you evaluate?`;
 
-      addMessage({
-        role: 'interviewer',
-        content: defaultQuestion,
-        questionNumber: 1,
-        isFollowUp: false,
-      });
+      deliverInterviewerQuestion(defaultQuestion, 1, false);
     } finally {
       setIsLoading(false);
     }
