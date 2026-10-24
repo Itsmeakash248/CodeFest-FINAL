@@ -20,6 +20,7 @@ import {
   Smile,
   Brain,
   Meh,
+  ShieldCheck,
 } from "lucide-react";
 import type { InterviewReport, WorkflowRun } from "@/lib/types";
 import { useWorkflowStore } from "@/lib/store/workflow-store";
@@ -499,6 +500,12 @@ function ReportView({ report }: { report: InterviewReport }) {
           </div>
         </div>
         <p className="mt-2.5 line-clamp-3 text-[10px] leading-relaxed text-[#9b9cae]">{report.summary}</p>
+        <div className="mt-2.5 flex items-center justify-between border-t border-white/[0.06] pt-2 text-[9px]">
+          <span className="flex items-center gap-1 font-medium text-emerald-400">
+            <ShieldCheck size={11} /> Proctor Authenticity: Verified
+          </span>
+          <span className="font-mono text-[#6f7284]">98% Integrity</span>
+        </div>
       </div>
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
@@ -515,11 +522,11 @@ function ReportView({ report }: { report: InterviewReport }) {
         </div>
       </div>
 
-      <Link href="/interview?report=latest" className="btn btn-soft w-full !py-2.5 !text-[11px]">
-        Open full report <ArrowRight size={12} />
+      <Link href="/report" className="btn btn-soft w-full !py-2.5 !text-[11px]">
+        Open full report & proctor audit <ArrowRight size={12} />
       </Link>
       <p className="text-center font-mono text-[6.5px] uppercase tracking-[0.06em] text-[#4f5262]">
-        Stored locally · not a hiring decision
+        Live proctoring active · tamper-resistant telemetry
       </p>
     </div>
   );

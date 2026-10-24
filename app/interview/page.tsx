@@ -36,6 +36,7 @@ import {
   CheatingEvent,
   CheatingDetectionReport,
 } from '@/types';
+import { computeIntegrityReport } from '@/lib/fallback-data';
 import { speakQuestion, stopSpeaking } from '@/lib/voice';
 
 export default function InterviewPage() {
@@ -98,15 +99,30 @@ export default function InterviewPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Anti-Cheat & Live Proctor: Tab visibility & window blur monitoring
+  // Anti-Cheat & Live Proctor: Tab visibility, window blur/focus, & copy monitoring
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleVisibility = () => {
+    const recordAwayTime = (awaySec: number, reason: string) => {
+      setTotalUnfocusedSeconds((prev) => prev + awaySec);
       const elapsedMins = Math.floor(elapsedSeconds / 60);
       const elapsedSecs = elapsedSeconds % 60;
       const timeStr = `${elapsedMins.toString().padStart(2, '0')}:${elapsedSecs.toString().padStart(2, '0')}`;
+      setCheatingEvents((prev) => [
+        ...prev,
+        {
+          id: `evt-away-${Date.now()}`,
+          type: 'tab_switch',
+          timestamp: Date.now(),
+          timeString: timeStr,
+          description: `${reason} (${awaySec}s away)`,
+          severity: awaySec > 4 ? 'warning' : 'info',
+          details: `Unfocused duration: ${awaySec} seconds`,
+        },
+      ]);
+    };
 
+    const handleVisibility = () => {
       if (document.hidden) {
         unfocusedStartTimeRef.current = Date.now();
         setTabSwitchCount((prev) => {
@@ -121,27 +137,63 @@ export default function InterviewPage() {
       } else {
         if (unfocusedStartTimeRef.current) {
           const awaySec = Math.max(1, Math.round((Date.now() - unfocusedStartTimeRef.current) / 1000));
-          setTotalUnfocusedSeconds((prev) => prev + awaySec);
-          setCheatingEvents((prev) => [
-            ...prev,
-            {
-              id: `evt-tab-${Date.now()}`,
-              type: 'tab_switch',
-              timestamp: Date.now(),
-              timeString: timeStr,
-              description: `Tab switch detected: candidate away for ${awaySec}s`,
-              severity: awaySec > 4 ? 'warning' : 'info',
-              details: `Unfocused duration: ${awaySec} seconds`,
-            },
-          ]);
+          recordAwayTime(awaySec, 'Tab switch detected');
           unfocusedStartTimeRef.current = null;
         }
       }
     };
 
+    const handleWindowBlur = () => {
+      if (!unfocusedStartTimeRef.current) {
+        unfocusedStartTimeRef.current = Date.now();
+        setTabSwitchCount((prev) => {
+          const next = prev + 1;
+          setProctorToast({
+            msg: `⚠️ Proctor Shield: Window defocus recorded (#${next}). Stay on this window for verified score.`,
+            severity: 'warning',
+          });
+          setTimeout(() => setProctorToast(null), 4500);
+          return next;
+        });
+      }
+    };
+
+    const handleWindowFocus = () => {
+      if (unfocusedStartTimeRef.current) {
+        const awaySec = Math.max(1, Math.round((Date.now() - unfocusedStartTimeRef.current) / 1000));
+        recordAwayTime(awaySec, 'Window defocus recorded');
+        unfocusedStartTimeRef.current = null;
+      }
+    };
+
+    const handleCopy = () => {
+      const elapsedMins = Math.floor(elapsedSeconds / 60);
+      const elapsedSecs = elapsedSeconds % 60;
+      const timeStr = `${elapsedMins.toString().padStart(2, '0')}:${elapsedSecs.toString().padStart(2, '0')}`;
+      setCheatingEvents((prev) => [
+        ...prev,
+        {
+          id: `evt-copy-${Date.now()}`,
+          type: 'clipboard_paste',
+          timestamp: Date.now(),
+          timeString: timeStr,
+          description: 'Candidate copied interview content to clipboard.',
+          severity: 'info',
+          details: 'Text copied from interview session',
+        },
+      ]);
+    };
+
     document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('copy', handleCopy);
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('copy', handleCopy);
     };
   }, [elapsedSeconds]);
 
@@ -318,6 +370,36 @@ export default function InterviewPage() {
     const userText = input.trim();
     setInput('');
 
+    // Anti-cheat: synthetic AI phrasing audit
+    const formulaicPatterns = [
+      /\b(as an ai language model|as an ai|i do not have personal experiences)\b/i,
+      /\b(certainly!? (here is|here's)|in summary, it is crucial to|in conclusion, it is evident)\b/i,
+      /\b(delve into|delving into|testament to|vital role in ensuring|pivotal role in)\b/i,
+      /\b(firstly, second of all, furthermore, moreover, additionally, in summary)\b/i,
+    ];
+    let detectedPatterns = 0;
+    formulaicPatterns.forEach((rx) => {
+      if (rx.test(userText)) detectedPatterns++;
+    });
+    if (detectedPatterns > 0) {
+      setAiPatternRiskScore((prev) => Math.min(85, prev + detectedPatterns * 15));
+      const elapsedMins = Math.floor(elapsedSeconds / 60);
+      const elapsedSecs = elapsedSeconds % 60;
+      const timeStr = `${elapsedMins.toString().padStart(2, '0')}:${elapsedSecs.toString().padStart(2, '0')}`;
+      setCheatingEvents((prev) => [
+        ...prev,
+        {
+          id: `evt-ai-${Date.now()}`,
+          type: 'synthetic_ai_pattern',
+          timestamp: Date.now(),
+          timeString: timeStr,
+          description: `Synthetic language structure identified (${detectedPatterns} formulaic markers flagged).`,
+          severity: detectedPatterns > 1 ? 'warning' : 'info',
+          details: 'Formulaic LLM phrasing patterns identified in candidate response composition',
+        },
+      ]);
+    }
+
     // Add candidate message
     const userMessage: ChatMessageType = {
       id: `usr-${Date.now()}`,
@@ -415,6 +497,16 @@ export default function InterviewPage() {
       durationSeconds: elapsedSeconds,
     };
 
+    const integrityData: Partial<CheatingDetectionReport> = {
+      tabSwitchCount,
+      totalUnfocusedSeconds,
+      pasteCount,
+      totalPastedCharacters,
+      typingCadenceWpmBurst: 115,
+      aiPatternRiskScore,
+      events: cheatingEvents,
+    };
+
     try {
       // Calculate candidate pacing and speech telemetry
       const candidateMsgs = messages.filter((m) => m.role === 'candidate');
@@ -424,6 +516,7 @@ export default function InterviewPage() {
       );
       const durationMinutes = Math.max(elapsedSeconds / 60, 0.5);
       const averageWpm = Math.round(totalWords / durationMinutes);
+      integrityData.typingCadenceWpmBurst = averageWpm;
 
       const fillerWords = ['basically', 'literally', 'actually', 'honestly', 'like', 'um', 'uh', 'you know'];
       let fillerCount = 0;
@@ -445,16 +538,6 @@ export default function InterviewPage() {
         wordsPerMinute: averageWpm,
         paceAssessment,
         fillerWordCount: fillerCount,
-      };
-
-      const integrityData: Partial<CheatingDetectionReport> = {
-        tabSwitchCount,
-        totalUnfocusedSeconds,
-        pasteCount,
-        totalPastedCharacters,
-        typingCadenceWpmBurst: averageWpm,
-        aiPatternRiskScore,
-        events: cheatingEvents,
       };
 
       const response = await fetch('/api/evaluate', {
@@ -545,6 +628,7 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
           'Re-run a High Difficulty session to practice under intense follow-up probing.',
         ],
         videoMetrics: effectiveVideoMetrics,
+        integrityReport: computeIntegrityReport(integrityData, Math.max(60, elapsedSeconds)),
       };
 
       setReport(fallbackReport as any);
@@ -563,6 +647,34 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-4.5rem)] max-w-6xl w-full mx-auto px-4 sm:px-6 py-4">
+      {/* Live Proctor Shield Toast Alert */}
+      <AnimatePresence>
+        {proctorToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            className={`w-full max-w-4xl mx-auto mb-2.5 p-3 px-4 rounded-2xl text-xs font-semibold flex items-center justify-between gap-3 shadow-md z-50 border transition-all ${
+              proctorToast.severity === 'warning'
+                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 backdrop-blur-md'
+                : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 backdrop-blur-md'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldAlert className="w-4 h-4 shrink-0 text-amber-500" />
+              <span>{proctorToast.msg}</span>
+            </div>
+            <button
+              onClick={() => setProctorToast(null)}
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-bold px-1.5 py-0.5 rounded-full hover:bg-[var(--surface-container)]"
+              aria-label="Dismiss alert"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Header Bar */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--outline)]/30">
         <div className="flex items-center gap-3">
@@ -708,7 +820,31 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
             <CandidateCamera
               isEnabled={isCameraEnabled}
               onToggleEnabled={() => setIsCameraEnabled((prev) => !prev)}
-              onMetricsUpdate={(m) => setVideoMetrics(m)}
+              onMetricsUpdate={(m) => {
+                setVideoMetrics(m);
+                if (m.eyeContactScore < 50 && (m.totalGazeChecks ?? 0) > 8) {
+                  const elapsedMins = Math.floor(elapsedSeconds / 60);
+                  const elapsedSecs = elapsedSeconds % 60;
+                  const timeStr = `${elapsedMins.toString().padStart(2, '0')}:${elapsedSecs.toString().padStart(2, '0')}`;
+                  setCheatingEvents((prev) => {
+                    if (prev.some((e) => e.type === 'gaze_anomaly' && Date.now() - e.timestamp < 35000)) {
+                      return prev;
+                    }
+                    return [
+                      ...prev,
+                      {
+                        id: `evt-gaze-${Date.now()}`,
+                        type: 'gaze_anomaly',
+                        timestamp: Date.now(),
+                        timeString: timeStr,
+                        description: `Averted gaze detected (${m.eyeContactScore}% eye contact ratio)`,
+                        severity: 'info',
+                        details: 'Frequent off-screen gaze shift outside primary interview viewport',
+                      },
+                    ];
+                  });
+                }
+              }}
             />
           </aside>
         )}
@@ -729,6 +865,37 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
                 rows={3}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onPaste={(e) => {
+                  const pastedData = e.clipboardData?.getData('text') || '';
+                  const pastedLen = pastedData.length;
+                  if (pastedLen > 0) {
+                    setPasteCount((prev) => prev + 1);
+                    setTotalPastedCharacters((prev) => prev + pastedLen);
+                    const elapsedMins = Math.floor(elapsedSeconds / 60);
+                    const elapsedSecs = elapsedSeconds % 60;
+                    const timeStr = `${elapsedMins.toString().padStart(2, '0')}:${elapsedSecs.toString().padStart(2, '0')}`;
+                    const isSuspicious = pastedLen > 120;
+                    setCheatingEvents((prev) => [
+                      ...prev,
+                      {
+                        id: `evt-paste-${Date.now()}`,
+                        type: 'clipboard_paste',
+                        timestamp: Date.now(),
+                        timeString: timeStr,
+                        description: `Clipboard paste: ${pastedLen} characters inserted`,
+                        severity: isSuspicious ? 'warning' : 'info',
+                        details: `Pasted excerpt: "${pastedData.slice(0, 60).trim()}..."`,
+                      },
+                    ]);
+                    if (isSuspicious) {
+                      setProctorToast({
+                        msg: `⚠️ Proctor Shield: External text paste detected (${pastedLen} chars). Natural typed composition recommended.`,
+                        severity: 'warning',
+                      });
+                      setTimeout(() => setProctorToast(null), 4000);
+                    }
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();

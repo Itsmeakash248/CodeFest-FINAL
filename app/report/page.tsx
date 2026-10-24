@@ -27,6 +27,8 @@ import { CoachingTips } from '@/components/CoachingTips';
 import { FairnessSection } from '@/components/FairnessSection';
 import { CommunicationTelemetry } from '@/components/CommunicationTelemetry';
 import { VideoPresenceCard } from '@/components/VideoPresenceCard';
+import { CheatingDetectionCard } from '@/components/CheatingDetectionCard';
+import { computeIntegrityReport } from '@/lib/fallback-data';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -63,7 +65,7 @@ export default function ReportPage() {
     }
   };
 
-  const { overallScore, verdict = 'Hire', executiveSummary, dimensions, improvedAnswerBlueprint, nextSteps, keyTakeaways, paceMetrics, videoMetrics } = activeReport;
+  const { overallScore, verdict = 'Hire', executiveSummary, dimensions, improvedAnswerBlueprint, nextSteps, keyTakeaways, paceMetrics, videoMetrics, integrityReport } = activeReport;
 
   const getVerdictStyle = (v: string) => {
     switch (v) {
@@ -286,6 +288,11 @@ export default function ReportPage() {
         {/* Video Interview Presence & Non-Verbal Composure Telemetry */}
         <section className="space-y-4">
           <VideoPresenceCard metrics={videoMetrics} />
+        </section>
+
+        {/* Anti-Cheat & Live Proctoring Authenticity Telemetry */}
+        <section className="space-y-4">
+          <CheatingDetectionCard report={integrityReport || activeReport?.integrityReport || computeIntegrityReport()} />
         </section>
 
         {/* Model Answer Blueprint & Action Plan */}

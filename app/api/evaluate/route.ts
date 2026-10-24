@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateEvaluationReport } from '@/lib/gemini';
-import { FALLBACK_EVALUATION_REPORT } from '@/lib/fallback-data';
+import { FALLBACK_EVALUATION_REPORT, computeIntegrityReport } from '@/lib/fallback-data';
 
 export async function POST(req: NextRequest) {
   let rawBody: any = null;
@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
       completedAt: new Date().toISOString(),
       ...(rawBody?.videoMetrics ? { videoMetrics: rawBody.videoMetrics } : {}),
       ...(rawBody?.config?.strictness ? { strictness: rawBody.config.strictness } : {}),
+      integrityReport: computeIntegrityReport(rawBody?.integrityData),
     };
     return NextResponse.json(
       {
