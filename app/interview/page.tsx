@@ -16,6 +16,7 @@ import {
   Volume2,
   VolumeX,
   ChevronRight,
+  Bot,
 } from 'lucide-react';
 import { useInterview } from '@/lib/interview-context';
 import { Button } from '@/components/ui/Button';
@@ -45,6 +46,7 @@ export default function InterviewPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(false);
+  const [robotStatus, setRobotStatus] = useState<{ online: boolean; expression?: string } | null>(null);
 
   useEffect(() => {
     return () => {
@@ -71,6 +73,18 @@ export default function InterviewPage() {
       setElapsedSeconds((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Poll robot initial connection
+  useEffect(() => {
+    fetch('/api/robot')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.online === 'boolean') {
+          setRobotStatus({ online: data.online, expression: data.expression });
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Web Speech API check for Voice Input bonus
@@ -116,15 +130,46 @@ export default function InterviewPage() {
     }
   }, []);
 
+  const notifyRobot = (params: {
+    stage?: string;
+    expression?: string;
+    question?: string;
+    q?: number;
+    total?: number;
+    nod?: boolean;
+  }) => {
+    fetch('/api/robot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.online === 'boolean') {
+          setRobotStatus((prev) => ({
+            online: data.online,
+            expression: data.expression?.expression || params.expression || prev?.expression,
+          }));
+        }
+      })
+      .catch(() => {});
+  };
+
+  const triggerRobotNod = () => {
+    notifyRobot({ nod: true, expression: 'nod' });
+  };
+
   const toggleVoiceRecording = () => {
     if (!speechRecognitionRef.current) return;
     if (isRecording) {
       speechRecognitionRef.current.stop();
       setIsRecording(false);
+      notifyRobot({ stage: 'thinking', expression: 'thinking' });
     } else {
       try {
         speechRecognitionRef.current.start();
         setIsRecording(true);
+        notifyRobot({ stage: 'listening', expression: 'listening' });
       } catch (e) {
         console.warn('Could not start speech recognition', e);
       }
@@ -137,6 +182,13 @@ export default function InterviewPage() {
       content: text,
       questionNumber: qNum,
       isFollowUp,
+    });
+    notifyRobot({
+      stage: isFollowUp ? 'encouraging' : 'asking',
+      expression: isFollowUp ? 'encouraging' : 'speaking',
+      question: text,
+      q: qNum,
+      total: maxQuestions,
     });
     if (autoSpeak) {
       speakQuestion(text);
@@ -208,6 +260,7 @@ export default function InterviewPage() {
     setMessages(updatedMessages);
 
     setIsLoading(true);
+    notifyRobot({ stage: 'thinking', expression: 'thinking' });
 
     try {
       const response = await fetch('/api/interview', {
@@ -230,6 +283,7 @@ export default function InterviewPage() {
         );
 
         if (data.isComplete || currentQuestionCount + 1 >= maxQuestions) {
+          notifyRobot({ stage: 'complete', expression: 'happy', question: 'Interview Complete' });
           addMessage({
             role: 'system',
             content: 'The interview has completed. Click "View Evaluation Report" to analyze your performance.',
@@ -267,6 +321,7 @@ export default function InterviewPage() {
       );
 
       if (isFinal) {
+        notifyRobot({ stage: 'complete', expression: 'happy', question: 'Interview Complete' });
         addMessage({
           role: 'system',
           content: 'The practice interview has concluded. Click "View Evaluation Report" below.',
@@ -279,6 +334,7 @@ export default function InterviewPage() {
 
   const handleFinishAndEvaluate = async () => {
     setIsEvaluating(true);
+    notifyRobot({ stage: 'evaluating', expression: 'thinking' });
     try {
       // Calculate candidate pacing and speech telemetry
       const candidateMsgs = messages.filter((m) => m.role === 'candidate');
@@ -439,6 +495,27 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
 
         {/* Action Controls & Question Counter */}
         <div className="flex items-center gap-3 self-end sm:self-auto">
+          {robotStatus?.online ? (
+            <button
+              type="button"
+              onClick={triggerRobotNod}
+              title="ViewPilot Physical Robot connected. Click to trigger affirmative nod gesture."
+              className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <Bot className="w-3.5 h-3.5" />
+              <span>Robot Synced</span>
+            </button>
+          ) : (
+            <span
+              title="ViewPilot hardware endpoint (configurable via ROBOT_BASE_URL)"
+              className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full bg-[var(--outline)]/15 text-[var(--text-secondary)] border border-[var(--outline)]/20"
+            >
+              <Bot className="w-3.5 h-3.5 opacity-60" />
+              <span>Robot Standby</span>
+            </span>
+          )}
+
           <div className="text-right hidden sm:block">
             <span className="text-xs font-bold text-[var(--text-primary)] block">
               Question {Math.min(currentQuestionCount || 1, maxQuestions)} of {maxQuestions}

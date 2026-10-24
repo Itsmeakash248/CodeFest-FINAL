@@ -22,4 +22,7 @@ build/
 .~lock.*
 *.tmp
 next-env.d.ts
-
+# Hardware & ESP-IDF components
+viewpilot/components/
+viewpilot/sdkconfig
+viewpilot/sdkconfig.old
