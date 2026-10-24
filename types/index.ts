@@ -93,6 +93,17 @@ export interface PaceMetrics {
   detectedFillers?: string[];
 }
 
+export interface VideoPresenceMetrics {
+  cameraEnabled: boolean;
+  eyeContactScore: number; // 0-100%
+  framingStatus: 'Centered & Optimal' | 'Slightly Off-Center' | 'Sub-optimal Lighting' | 'Not Detected';
+  composureScore: number; // 1-10
+  lightingQuality: 'Optimal' | 'Dim' | 'Harsh';
+  durationSeconds: number;
+  totalGazeChecks?: number;
+  goodGazeCount?: number;
+}
+
 export type Verdict =
   | 'Strong Hire'
   | 'Hire'
@@ -115,6 +126,7 @@ export interface EvaluationReport {
   nextSteps: string[];
   keyTakeaways?: string[];
   paceMetrics?: PaceMetrics;
+  videoMetrics?: VideoPresenceMetrics;
 }
 
 export interface InterviewState {
@@ -152,6 +164,7 @@ export interface EvaluateApiRequest {
   history?: ChatMessage[];
   transcript?: ChatMessage[];
   metrics?: Partial<PaceMetrics>;
+  videoMetrics?: Partial<VideoPresenceMetrics>;
 }
 
 export interface SessionHistoryItem {
@@ -171,6 +184,7 @@ export interface SessionHistoryItem {
     answerQuality: number;
   };
   metrics?: Partial<PaceMetrics>;
+  videoMetrics?: Partial<VideoPresenceMetrics>;
   summary: string;
   report?: EvaluationReport;
 }

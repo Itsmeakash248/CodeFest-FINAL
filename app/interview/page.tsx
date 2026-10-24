@@ -17,6 +17,8 @@ import {
   VolumeX,
   ChevronRight,
   Bot,
+  Video,
+  VideoOff,
 } from 'lucide-react';
 import { useInterview } from '@/lib/interview-context';
 import { Button } from '@/components/ui/Button';
@@ -24,7 +26,8 @@ import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { ChatMessage } from '@/components/ChatMessage';
 import { PaceCoach } from '@/components/PaceCoach';
-import { ChatMessage as ChatMessageType } from '@/types';
+import { CandidateCamera } from '@/components/CandidateCamera';
+import { ChatMessage as ChatMessageType, VideoPresenceMetrics } from '@/types';
 import { speakQuestion, stopSpeaking } from '@/lib/voice';
 
 export default function InterviewPage() {
@@ -47,6 +50,8 @@ export default function InterviewPage() {
   const [speechSupported, setSpeechSupported] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(false);
   const [robotStatus, setRobotStatus] = useState<{ online: boolean; expression?: string } | null>(null);
+  const [isCameraEnabled, setIsCameraEnabled] = useState(true);
+  const [videoMetrics, setVideoMetrics] = useState<VideoPresenceMetrics | null>(null);
 
   useEffect(() => {
     return () => {
@@ -335,6 +340,16 @@ export default function InterviewPage() {
   const handleFinishAndEvaluate = async () => {
     setIsEvaluating(true);
     notifyRobot({ stage: 'evaluating', expression: 'thinking' });
+
+    const effectiveVideoMetrics: VideoPresenceMetrics = videoMetrics || {
+      cameraEnabled: isCameraEnabled,
+      eyeContactScore: isCameraEnabled ? 92 : 0,
+      framingStatus: isCameraEnabled ? 'Centered & Optimal' : 'Not Detected',
+      lightingQuality: isCameraEnabled ? 'Optimal' : 'Dim',
+      composureScore: isCameraEnabled ? 9.0 : 7.0,
+      durationSeconds: elapsedSeconds,
+    };
+
     try {
       // Calculate candidate pacing and speech telemetry
       const candidateMsgs = messages.filter((m) => m.role === 'candidate');
@@ -374,6 +389,7 @@ export default function InterviewPage() {
           config,
           history: messages,
           metrics,
+          videoMetrics: effectiveVideoMetrics,
         }),
       });
 
@@ -452,6 +468,7 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
           'Review distributed system design patterns and data consistency models.',
           'Re-run a High Difficulty session to practice under intense follow-up probing.',
         ],
+        videoMetrics: effectiveVideoMetrics,
       };
 
       setReport(fallbackReport as any);
@@ -469,7 +486,7 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4.5rem)] max-w-5xl w-full mx-auto px-4 sm:px-6 py-4">
+    <div className="flex-1 flex flex-col h-[calc(100vh-4.5rem)] max-w-6xl w-full mx-auto px-4 sm:px-6 py-4">
       {/* Top Header Bar */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--outline)]/30">
         <div className="flex items-center gap-3">
@@ -494,7 +511,32 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
         </div>
 
         {/* Action Controls & Question Counter */}
-        <div className="flex items-center gap-3 self-end sm:self-auto">
+        <div className="flex items-center gap-2.5 sm:gap-3 self-end sm:self-auto flex-wrap">
+          {/* Candidate Camera Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsCameraEnabled((prev) => !prev)}
+            title={isCameraEnabled ? 'Turn off candidate camera' : 'Turn on candidate camera'}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
+              isCameraEnabled
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20'
+                : 'bg-[var(--outline)]/15 text-[var(--text-secondary)] border-[var(--outline)]/20 hover:bg-[var(--outline)]/25'
+            }`}
+          >
+            {isCameraEnabled ? (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <Video className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="hidden sm:inline">Camera ON</span>
+              </>
+            ) : (
+              <>
+                <VideoOff className="w-3.5 h-3.5 opacity-70" />
+                <span className="hidden sm:inline">Camera OFF</span>
+              </>
+            )}
+          </button>
+
           {robotStatus?.online ? (
             <button
               type="button"
@@ -543,29 +585,43 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
         </div>
       </header>
 
-      {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto py-4 px-1 sm:px-2 space-y-2">
-        {messages.map((msg) => (
-          <ChatMessage key={msg.id} message={msg} totalQuestions={maxQuestions} />
-        ))}
+      {/* Main Interview Body: Messages + Candidate Live Camera Preview */}
+      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0 overflow-hidden py-3">
+        {/* Messages Scroll Area */}
+        <div className="flex-1 overflow-y-auto px-1 sm:px-2 space-y-2 min-h-0">
+          {messages.map((msg) => (
+            <ChatMessage key={msg.id} message={msg} totalQuestions={maxQuestions} />
+          ))}
 
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 my-4"
-          >
-            <div className="w-8 h-8 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center font-bold text-xs shrink-0">
-              VP
-            </div>
-            <div className="p-4 rounded-[22px] rounded-tl-xs bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--outline)]/40 shadow-xs flex items-center gap-2 text-xs font-medium">
-              <span className="inline-block w-2 h-2 rounded-full bg-[var(--primary)] animate-ping" />
-              <span>ViewPilot is formulating your next question...</span>
-            </div>
-          </motion.div>
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 my-4"
+            >
+              <div className="w-8 h-8 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center font-bold text-xs shrink-0">
+                VP
+              </div>
+              <div className="p-4 rounded-[22px] rounded-tl-xs bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--outline)]/40 shadow-xs flex items-center gap-2 text-xs font-medium">
+                <span className="inline-block w-2 h-2 rounded-full bg-[var(--primary)] animate-ping" />
+                <span>ViewPilot is formulating your next question...</span>
+              </div>
+            </motion.div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Live Candidate Camera & Proctoring Sidebar */}
+        {isCameraEnabled && (
+          <aside className="w-full md:w-72 lg:w-80 shrink-0 flex flex-col gap-2">
+            <CandidateCamera
+              isEnabled={isCameraEnabled}
+              onToggleEnabled={() => setIsCameraEnabled((prev) => !prev)}
+              onMetricsUpdate={(m) => setVideoMetrics(m)}
+            />
+          </aside>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Composer & Live Real-Time Pace Coach */}

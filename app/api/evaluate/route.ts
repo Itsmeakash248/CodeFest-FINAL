@@ -3,8 +3,9 @@ import { generateEvaluationReport } from '@/lib/gemini';
 import { FALLBACK_EVALUATION_REPORT } from '@/lib/fallback-data';
 
 export async function POST(req: NextRequest) {
+  let rawBody: any = null;
   try {
-    const rawBody = await req.json();
+    rawBody = await req.json();
 
     const config = rawBody.config || {
       role: 'Frontend Developer',
@@ -20,7 +21,11 @@ export async function POST(req: NextRequest) {
       : [];
 
     const metrics = rawBody.metrics;
+    const videoMetrics = rawBody.videoMetrics;
     const report = await generateEvaluationReport(config, transcript, metrics);
+    if (videoMetrics) {
+      report.videoMetrics = videoMetrics;
+    }
 
     return NextResponse.json({
       success: true,
@@ -33,6 +38,7 @@ export async function POST(req: NextRequest) {
       ...FALLBACK_EVALUATION_REPORT,
       id: `eval_fallback_${Date.now()}`,
       completedAt: new Date().toISOString(),
+      ...(rawBody?.videoMetrics ? { videoMetrics: rawBody.videoMetrics } : {}),
     };
     return NextResponse.json(
       {

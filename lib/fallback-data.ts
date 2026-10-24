@@ -232,4 +232,14 @@ export const FALLBACK_EVALUATION_REPORT: EvaluationReport = {
     fillerWordCount: 3,
     detectedFillers: ['honestly', 'just'],
   },
+  videoMetrics: {
+    cameraEnabled: true,
+    eyeContactScore: 92,
+    framingStatus: 'Centered & Optimal',
+    composureScore: 9.0,
+    lightingQuality: 'Optimal',
+    durationSeconds: 270,
+    totalGazeChecks: 180,
+    goodGazeCount: 166,
+  },
 };

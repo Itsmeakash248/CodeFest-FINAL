@@ -26,6 +26,7 @@ import { EvidencePanel } from '@/components/EvidencePanel';
 import { CoachingTips } from '@/components/CoachingTips';
 import { FairnessSection } from '@/components/FairnessSection';
 import { CommunicationTelemetry } from '@/components/CommunicationTelemetry';
+import { VideoPresenceCard } from '@/components/VideoPresenceCard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -62,7 +63,7 @@ export default function ReportPage() {
     }
   };
 
-  const { overallScore, verdict = 'Hire', executiveSummary, dimensions, improvedAnswerBlueprint, nextSteps, keyTakeaways, paceMetrics } = activeReport;
+  const { overallScore, verdict = 'Hire', executiveSummary, dimensions, improvedAnswerBlueprint, nextSteps, keyTakeaways, paceMetrics, videoMetrics } = activeReport;
 
   const getVerdictStyle = (v: string) => {
     switch (v) {
@@ -281,6 +282,11 @@ export default function ReportPage() {
             <CommunicationTelemetry metrics={paceMetrics} />
           </section>
         )}
+
+        {/* Video Interview Presence & Non-Verbal Composure Telemetry */}
+        <section className="space-y-4">
+          <VideoPresenceCard metrics={videoMetrics} />
+        </section>
 
         {/* Model Answer Blueprint & Action Plan */}
         <section className="space-y-4">
