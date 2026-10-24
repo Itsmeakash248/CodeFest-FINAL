@@ -251,13 +251,14 @@ private:
 
     // Interviewer session state & HUD
     InterviewStage interviewStage;
-    char interviewQuestionText[128];
+    char interviewQuestionText[192];
     int interviewQNum;
     int interviewTotalQ;
     bool isNodding;
     float nodTimer;
     float nodOffset;
     void drawInterviewerHUD();
+    void updateCodeFestQuestion(RobotEmotion emotion);
 
     // Color helpers
     static RobotTheme getEmotionTheme(RobotEmotion emotion);

@@ -530,6 +530,9 @@ void RobotFace::applyEmotionPreset(RobotEmotion emotion) {
 }
 
 void RobotFace::setEmotion(RobotEmotion emotion, bool immediate) {
+    if (emotion != targetEmotion || interviewQuestionText[0] == '\0') {
+        updateCodeFestQuestion(emotion);
+    }
     targetEmotion = emotion;
     applyEmotionPreset(emotion);
 
@@ -1482,8 +1485,14 @@ void RobotFace::drawPerfOverlay() {
     int32_t x = 0, y = 0;
     switch (perfPos) {
         case PerfOverlayPosition::BottomCenter:
-            x = (SCREEN_WIDTH - w) / 2;
-            y = SCREEN_HEIGHT - h - 3;
+            if (interviewQuestionText[0] != '\0') {
+                // Relocate to top right so it doesn't overlap the question box at bottom
+                x = SCREEN_WIDTH - w - 8;
+                y = 12;
+            } else {
+                x = (SCREEN_WIDTH - w) / 2;
+                y = SCREEN_HEIGHT - h - 3;
+            }
             break;
         case PerfOverlayPosition::TopCenter:
             x = (SCREEN_WIDTH - w) / 2;
@@ -1688,18 +1697,74 @@ void RobotFace::drawWifiIndicator(int32_t x, int32_t y) {
     }
 }
 
+void RobotFace::updateCodeFestQuestion(RobotEmotion emotion) {
+    if (interviewStage != InterviewStage::Idle) {
+        return;
+    }
+
+    struct CodeFestQ {
+        const char* text;
+        const char* tag;
+    };
+
+    // Authentic questions mapped directly from /home/akash/Documents/CodeFest
+    static const CodeFestQ CODEFEST_QUESTIONS[] = {
+        // Neutral (0)
+        { "Tell me about yourself and why this role interests you.", "FIT" },
+        // Happy (1)
+        { "Walk me through a project you're proud of and your contribution.", "IMPACT" },
+        // Curious (2)
+        { "A service p95 latency doubled after deploy. How do you find the cause?", "BACKEND" },
+        // Surprised (3)
+        { "Your app gets 10x traffic overnight. What breaks first and what to do?", "SCALE" },
+        // Focused (4)
+        { "A dashboard takes 4s to be interactive. How do you diagnose & fix it?", "PERF" },
+        // Sleepy (5)
+        { "Where do you want to grow in the next year, and what are you doing now?", "GROWTH" },
+        // Wink (6)
+        { "How do you choose between SQL and NoSQL for a new feature?", "DATA" },
+        // Sad (7)
+        { "Describe a time something you owned failed. What did you do next?", "OWNERSHIP" },
+        // Rage (8)
+        { "Tell me about a time you disagreed with a teammate or manager.", "TEAM" },
+        // Dasara (9)
+        { "Tell me about a process you improved. What was the before & after?", "PROCESS" },
+        // Listening (10)
+        { "Design authentication and authorization for a small SaaS app.", "SECURITY" },
+        // Thinking (11)
+        { "How do you prioritize when three urgent requests land at once?", "PRIORITY" },
+        // Encouraging (12)
+        { "Describe a complex problem you solved. How did you break it down?", "PROBLEM" },
+        // Nod (13)
+        { "Tell me about difficult feedback you received. What changed?", "FEEDBACK" },
+        // Speaking (14)
+        { "Design the API & data model for booking to prevent double bookings.", "SYSTEM" }
+    };
+
+    int total = (int)(sizeof(CODEFEST_QUESTIONS) / sizeof(CODEFEST_QUESTIONS[0]));
+    int idx = ((int)emotion >= 0) ? ((int)emotion % total) : 0;
+    strncpy(interviewQuestionText, CODEFEST_QUESTIONS[idx].text, sizeof(interviewQuestionText) - 1);
+    interviewQuestionText[sizeof(interviewQuestionText) - 1] = '\0';
+    interviewQNum = idx + 1;
+    interviewTotalQ = total;
+}
+
 void RobotFace::drawInterviewerHUD() {
     if (interviewStage == InterviewStage::Idle && interviewQuestionText[0] == '\0') {
         return;
     }
 
-    // Top-Center Interviewer Stage Pill
+    // Top-Center Stage / Question Pill
     canvas.setTextSize(1);
     char badge[32];
-    if (interviewQNum > 0 && interviewTotalQ > 0) {
-        snprintf(badge, sizeof(badge), "Q%d/%d", interviewQNum, interviewTotalQ);
+    if (interviewStage != InterviewStage::Idle) {
+        if (interviewQNum > 0 && interviewTotalQ > 0) {
+            snprintf(badge, sizeof(badge), "Q%d/%d", interviewQNum, interviewTotalQ);
+        } else {
+            snprintf(badge, sizeof(badge), "INTERVIEW");
+        }
     } else {
-        snprintf(badge, sizeof(badge), "INTERVIEW");
+        snprintf(badge, sizeof(badge), "CODEFEST Q%d", interviewQNum);
     }
 
     int32_t badgeW = canvas.textWidth(badge) + 12;
@@ -1711,21 +1776,57 @@ void RobotFace::drawInterviewerHUD() {
     canvas.setTextColor(currentTheme.secondary, currentTheme.glow);
     canvas.drawString(badge, badgeX + 6, badgeY + 1);
 
-    // If an interview question is active, display a prompt box at bottom
+    // If a question is active, display a cyber prompt box at bottom
     if (interviewQuestionText[0] != '\0') {
-        int32_t qBoxH = 20;
-        int32_t qBoxY = SCREEN_HEIGHT - qBoxH - 5;
-        int32_t qBoxX = 12;
-        int32_t qBoxW = SCREEN_WIDTH - 24;
+        int32_t qBoxH = 26;
+        int32_t qBoxY = SCREEN_HEIGHT - qBoxH - 3;
+        int32_t qBoxX = 6;
+        int32_t qBoxW = SCREEN_WIDTH - 12;
 
+        // Dark obsidian background with glowing border
         canvas.fillRoundRect(qBoxX, qBoxY, qBoxW, qBoxH, 4, (uint16_t)0x0842);
         canvas.drawRoundRect(qBoxX, qBoxY, qBoxW, qBoxH, 4, currentTheme.primary);
 
+        // Left Tag Badge
+        int32_t tagW = 54;
+        canvas.fillRoundRect(qBoxX + 2, qBoxY + 2, tagW, qBoxH - 4, 3, currentTheme.glow);
+        canvas.drawRoundRect(qBoxX + 2, qBoxY + 2, tagW, qBoxH - 4, 3, currentTheme.primary);
+        canvas.setTextColor(currentTheme.secondary, currentTheme.glow);
+        canvas.drawString("CODEFEST", qBoxX + 4, qBoxY + 9);
+
+        // Word wrapped question text
         canvas.setTextColor(currentTheme.secondary, (uint16_t)0x0842);
-        char displayQ[50];
-        strncpy(displayQ, interviewQuestionText, sizeof(displayQ) - 1);
-        displayQ[sizeof(displayQ) - 1] = '\0';
-        canvas.drawString(displayQ, qBoxX + 6, qBoxY + 5);
+        int32_t textX = qBoxX + tagW + 6;
+        int32_t maxLineChars = 38;
+
+        const char* q = interviewQuestionText;
+        size_t len = strlen(q);
+
+        if (len <= (size_t)maxLineChars) {
+            canvas.drawString(q, textX, qBoxY + 9);
+        } else {
+            // Find wrap point
+            int split = maxLineChars;
+            while (split > 15 && q[split] != ' ') {
+                split--;
+            }
+            if (split <= 15) split = maxLineChars;
+
+            char line1[64];
+            int c1 = std::min(split, (int)sizeof(line1) - 1);
+            strncpy(line1, q, c1);
+            line1[c1] = '\0';
+
+            const char* second = q + split;
+            while (*second == ' ') second++;
+
+            char line2[64];
+            strncpy(line2, second, sizeof(line2) - 1);
+            line2[sizeof(line2) - 1] = '\0';
+
+            canvas.drawString(line1, textX, qBoxY + 4);
+            canvas.drawString(line2, textX, qBoxY + 15);
+        }
     }
 }
 

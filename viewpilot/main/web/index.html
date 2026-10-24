@@ -401,6 +401,9 @@ footer{
         <div class="tilak"></div>
         <div class="diya"></div>
       </div>
+    <div class="cf-question-card" id="cfQuestionCard" style="margin: 8px 0 12px; padding: 10px 14px; background: rgba(8,38,48,0.75); border: 1px solid #174b54; border-radius: 8px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+      <span class="tag" id="cfBadge" style="border-color:#00e5ff;color:#00e5ff;font-size:10px;font-weight:700;white-space:nowrap;">CODEFEST Q</span>
+      <span id="cfQuestionText" style="font-size:12px;color:#cbf0f8;line-height:1.4;flex:1;">Tell me about a process you improved. What was the before & after?</span>
     </div>
     <div class="emotion-grid" id="emotionGrid"></div>
     <div class="auto-row">
@@ -614,9 +617,36 @@ footer{
     }
   }
 
+  const codefestQuestions = [
+    "Tell me about yourself and why this role interests you.",
+    "Walk me through a project you're proud of and your contribution.",
+    "A service p95 latency doubled after deploy. How do you find the cause?",
+    "Your app gets 10x traffic overnight. What breaks first and what to do?",
+    "A dashboard takes 4s to be interactive. How do you diagnose & fix it?",
+    "Where do you want to grow in the next year, and what are you doing now?",
+    "How do you choose between SQL and NoSQL for a new feature?",
+    "Describe a time something you owned failed. What did you do next?",
+    "Tell me about a time you disagreed with a teammate or manager.",
+    "Tell me about a process you improved. What was the before & after?",
+    "Design authentication and authorization for a small SaaS app.",
+    "How do you prioritize when three urgent requests land at once?",
+    "Describe a complex problem you solved. How did you break it down?",
+    "Tell me about difficult feedback you received. What changed?",
+    "Design the API & data model for booking to prevent double bookings."
+  ];
+
+  function showCodefestQ(id) {
+    const qEl = $("#cfQuestionText");
+    const bEl = $("#cfBadge");
+    const idx = Number(id) % codefestQuestions.length;
+    if (qEl) qEl.textContent = codefestQuestions[idx];
+    if (bEl) bEl.textContent = "CODEFEST Q" + (idx + 1);
+  }
+
   async function chooseEmotion(id) {
     state.emotionHold = Date.now() + 2500;
     setFace(id);
+    showCodefestQ(id);
     try {
       if (state.auto) await disableAuto();
       await post("emotion", {id: Number(id)});
@@ -912,6 +942,7 @@ footer{
   $("#winkBtn").addEventListener("click", async () => {
     state.emotionHold = Date.now() + 2000;
     setFace(6);
+    showCodefestQ(6);
     try {
       if (state.auto) await disableAuto();
       await post("action", {type: "wink"});
@@ -924,6 +955,7 @@ footer{
     const next = (state.emotion + 1) % emotions.length;
     state.emotionHold = Date.now() + 2000;
     setFace(next);
+    showCodefestQ(next);
     try {
       if (state.auto) await disableAuto();
       await post("action", {type: "next"});
@@ -979,7 +1011,17 @@ footer{
       state.auto = !!data.auto;
       updateAutoUI();
     }
-    if (Date.now() > state.emotionHold) setFace(data.emotion);
+    if (Date.now() > state.emotionHold) {
+      setFace(data.emotion);
+      if (data.interview && data.interview.question) {
+        const qEl = $("#cfQuestionText");
+        const bEl = $("#cfBadge");
+        if (qEl) qEl.textContent = data.interview.question;
+        if (bEl && data.interview.q > 0) bEl.textContent = "CODEFEST Q" + data.interview.q;
+      } else {
+        showCodefestQ(data.emotion);
+      }
+    }
 
     if (document.activeElement !== modeSelect) {
       modeSelect.value = String(data.overlay.mode);
