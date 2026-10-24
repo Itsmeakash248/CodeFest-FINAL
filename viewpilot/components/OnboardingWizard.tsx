@@ -19,6 +19,8 @@ import {
   Shield,
   FileText,
   Upload,
+  FileUp,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -161,8 +163,49 @@ export function OnboardingWizard() {
   );
   const [resumeText, setResumeText] = useState<string>(config.resumeText || '');
   const [showResumeInput, setShowResumeInput] = useState<boolean>(false);
+  const [isParsingResume, setIsParsingResume] = useState<boolean>(false);
+  const [parsedFileName, setParsedFileName] = useState<string>('');
+  const [detectedSkills, setDetectedSkills] = useState<string[]>([]);
+  const [parseStatusMsg, setParseStatusMsg] = useState<string>('');
 
   const totalSteps = 4;
+
+  const handleResumeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsParsingResume(true);
+    setParsedFileName(file.name);
+    setParseStatusMsg('Extracting technical background & project history...');
+
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+
+      const res = await fetch('/api/parse-resume', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to parse resume');
+      }
+
+      const data = await res.json();
+      if (data.rawText) {
+        setResumeText(data.rawText);
+        setDetectedSkills(data.skills || []);
+        setParseStatusMsg(`Successfully extracted ${data.skills?.length || 0} core competencies from ${file.name}`);
+        setShowResumeInput(true);
+      }
+    } catch (err) {
+      console.warn('Resume parse warning, falling back to basic extraction:', err);
+      setParseStatusMsg('File uploaded. You can review or edit the summary text below.');
+      setShowResumeInput(true);
+    } finally {
+      setIsParsingResume(false);
+    }
+  };
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -346,35 +389,97 @@ export function OnboardingWizard() {
 
                 {/* Optional Resume Expansion */}
                 <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowResumeInput(!showResumeInput)}
-                    className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--primary)] hover:underline"
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>
-                      {showResumeInput
-                        ? 'Hide Resume Personalization'
-                        : '+ Add Resume / Context (Optional Bonus)'}
-                    </span>
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setShowResumeInput(!showResumeInput)}
+                      className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--primary)] hover:underline"
+                    >
+                      <FileUp className="w-4 h-4" />
+                      <span>
+                        {showResumeInput
+                          ? 'Hide Resume Personalization'
+                          : '+ Upload Resume / Custom Project Context (P1 Bonus)'}
+                      </span>
+                    </button>
+
+                    {resumeText && (
+                      <span className="text-[11px] font-semibold text-[var(--success)] flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Resume Loaded</span>
+                      </span>
+                    )}
+                  </div>
 
                   {showResumeInput && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-3 space-y-2"
+                      className="mt-3 space-y-3 p-4 rounded-[22px] bg-[var(--surface-container)]/50 border border-[var(--outline)]/30"
                     >
-                      <textarea
-                        rows={3}
-                        value={resumeText}
-                        onChange={(e) => setResumeText(e.target.value)}
-                        placeholder="Paste summary points from your resume or key projects here to tailor questions..."
-                        className="w-full bg-[var(--surface)] text-[var(--text-primary)] placeholder-[var(--text-secondary)]/60 text-xs rounded-[20px] border border-[var(--outline)]/50 p-4 outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                      />
-                      <p className="text-[11px] text-[var(--text-secondary)] pl-2">
-                        ViewPilot will use this text server-side to generate questions specifically about your real past projects.
-                      </p>
+                      {/* File Upload Zone */}
+                      <div className="relative border-2 border-dashed border-[var(--outline)]/50 hover:border-[var(--primary)] rounded-[18px] p-4 text-center transition-colors bg-[var(--surface)]">
+                        <input
+                          type="file"
+                          id="resume-upload"
+                          accept=".pdf,.txt,.md,.doc,.docx"
+                          onChange={handleResumeFileUpload}
+                          disabled={isParsingResume}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="flex flex-col items-center justify-center gap-2 pointer-events-none">
+                          {isParsingResume ? (
+                            <Loader2 className="w-6 h-6 text-[var(--primary)] animate-spin" />
+                          ) : (
+                            <Upload className="w-6 h-6 text-[var(--primary)]" />
+                          )}
+                          <div className="text-xs font-semibold text-[var(--text-primary)]">
+                            {isParsingResume
+                              ? 'Analyzing resume with Gemini parser...'
+                              : parsedFileName
+                              ? `Uploaded: ${parsedFileName} (Click or drop to replace)`
+                              : 'Click or drag & drop candidate resume (.pdf, .txt)'}
+                          </div>
+                          <p className="text-[11px] text-[var(--text-secondary)]">
+                            Automatically identifies skills, past projects, and architecture decisions.
+                          </p>
+                        </div>
+                      </div>
+
+                      {parseStatusMsg && (
+                        <p className="text-[11px] font-medium text-[var(--text-primary)] pl-1">
+                          {parseStatusMsg}
+                        </p>
+                      )}
+
+                      {/* Detected Skills Pill Grid */}
+                      {detectedSkills.length > 0 && (
+                        <div className="space-y-1.5 pt-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                            Detected Competencies
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {detectedSkills.map((sk) => (
+                              <Chip key={sk} selected className="text-xs px-3 py-1">
+                                {sk}
+                              </Chip>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-[var(--text-secondary)] block">
+                          Resume Context Preview (Sent to Interviewer AI)
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={resumeText}
+                          onChange={(e) => setResumeText(e.target.value)}
+                          placeholder="Paste summary points from your resume or key projects here to tailor questions..."
+                          className="w-full bg-[var(--surface)] text-[var(--text-primary)] placeholder-[var(--text-secondary)]/60 text-xs rounded-[16px] border border-[var(--outline)]/50 p-3 outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                        />
+                      </div>
                     </motion.div>
                   )}
                 </div>
@@ -489,6 +594,10 @@ export function OnboardingWizard() {
                   <Chip selected>{selectedType}</Chip>
                   <Chip selected>{selectedDiff} Bar</Chip>
                   {candidateName && <Chip>{candidateName}</Chip>}
+                  {resumeText && <Chip selected>Resume Tailored</Chip>}
+                  {detectedSkills.slice(0, 3).map((sk) => (
+                    <Chip key={sk}>+ {sk}</Chip>
+                  ))}
                 </div>
               </div>
             </motion.div>

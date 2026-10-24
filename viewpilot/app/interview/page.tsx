@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { ChatMessage } from '@/components/ChatMessage';
+import { PaceCoach } from '@/components/PaceCoach';
 import { ChatMessage as ChatMessageType } from '@/types';
 
 export default function InterviewPage() {
@@ -269,12 +270,44 @@ export default function InterviewPage() {
   const handleFinishAndEvaluate = async () => {
     setIsEvaluating(true);
     try {
+      // Calculate candidate pacing and speech telemetry
+      const candidateMsgs = messages.filter((m) => m.role === 'candidate');
+      const totalWords = candidateMsgs.reduce(
+        (acc, m) => acc + m.content.trim().split(/\s+/).filter(Boolean).length,
+        0
+      );
+      const durationMinutes = Math.max(elapsedSeconds / 60, 0.5);
+      const averageWpm = Math.round(totalWords / durationMinutes);
+
+      const fillerWords = ['basically', 'literally', 'actually', 'honestly', 'like', 'um', 'uh', 'you know'];
+      let fillerCount = 0;
+      candidateMsgs.forEach((m) => {
+        m.content.toLowerCase().split(/\s+/).forEach((w) => {
+          const clean = w.replace(/[^a-z]/g, '');
+          if (fillerWords.includes(clean)) fillerCount++;
+        });
+      });
+
+      const candidateCount = Math.max(candidateMsgs.length, 1);
+      const averageWordsPerAnswer = Math.round(totalWords / candidateCount);
+      const paceAssessment = averageWpm > 175 ? 'Too Fast' : averageWpm < 95 ? 'Too Slow' : 'Ideal Pace';
+
+      const metrics = {
+        totalWords,
+        averageWordsPerAnswer,
+        durationMinutes: Number(durationMinutes.toFixed(1)),
+        wordsPerMinute: averageWpm,
+        paceAssessment,
+        fillerWordCount: fillerCount,
+      };
+
       const response = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           config,
           history: messages,
+          metrics,
         }),
       });
 
@@ -448,8 +481,10 @@ ELEVATED BLUEPRINT (STAR + METRIC ANCHOR):
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Composer */}
-      <div className="pt-2 pb-2">
+      {/* Input Composer & Live Real-Time Pace Coach */}
+      <div className="pt-2 pb-2 space-y-2">
+        <PaceCoach currentText={input} elapsedSeconds={elapsedSeconds} />
+
         <Card
           variant="elevated"
           className="p-3 sm:p-4 bg-[var(--surface)] border border-[var(--outline)]/40 shadow-expressive-md rounded-[26px]"

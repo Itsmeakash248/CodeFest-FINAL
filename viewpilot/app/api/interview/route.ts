@@ -23,11 +23,13 @@ export async function POST(req: NextRequest) {
     const action = rawBody.action || (history.length === 0 ? 'start' : 'reply');
 
     if (action === 'start' && history.length === 0) {
-      const initial = getFallbackQuestion(config.role, 0, false);
+      const initial = await generateNextInterviewQuestion(config, [], undefined);
+      const questionText = initial.question || initial.reply || initial.content;
       return NextResponse.json({
         success: true,
-        question: initial.question || initial.reply,
-        content: initial.question || initial.reply,
+        question: questionText,
+        reply: questionText,
+        content: questionText,
         isFollowUp: false,
         isComplete: false,
         questionNumber: 1,
